@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import calendar
 
-
 class Result:
     def __init__(self, index_values, risk_free_rate=0.0, periods_per_year=252):
         """
