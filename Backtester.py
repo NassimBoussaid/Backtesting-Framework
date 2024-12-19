@@ -58,7 +58,7 @@ class Backtester:
     def calculate_returns(self, composition_matrix):
         asset_returns = self.data.pct_change().fillna(0)
         shifted_positions = composition_matrix.shift(1).fillna(0)
-
+        shifted_positions = shifted_positions.div(shifted_positions.abs().sum(axis=1), axis=0).fillna(0)
         # Adjust returns for transaction costs and slippage
         transaction_costs = self.calculate_transaction_costs(shifted_positions)
         slippage_costs = self.calculate_slippage_costs(shifted_positions)
