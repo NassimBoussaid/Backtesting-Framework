@@ -2,7 +2,7 @@ from Strategy import Strategy
 import pandas as pd
 
 class MovingAverage(Strategy):
-    def __init__(self, short_window: int, long_window: int, exponential_mode=False, column='AAPL UW Equity'):
+    def __init__(self, short_window: int, long_window: int, exponential_mode=False):
         """
         A moving average strategy that goes long if short MA > long MA, else short.
 
@@ -20,7 +20,6 @@ class MovingAverage(Strategy):
         self.short_window = short_window
         self.long_window = long_window
         self.exponential_mode = exponential_mode
-        self.column = column
 
     def get_position(self, historical_data: pd.DataFrame, current_position: float) -> float:
         """
@@ -42,7 +41,7 @@ class MovingAverage(Strategy):
             # Not enough data to compute strategy signals
             return current_position
 
-        prices = historical_data[self.column].values
+        prices = historical_data.values
 
         if self.exponential_mode:
             # Calculate EMA for short window
