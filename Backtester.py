@@ -31,11 +31,11 @@ class Backtester:
         :return: Instance de la classe Result contenant les résultats du backtest.
         """
         composition_matrix = self.calculate_composition_matrix(strategy, rebalancing_frequency)
-        asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns = self.calculate_returns(
+        asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade = self.calculate_returns(
             composition_matrix
         )
 
-        result = Result(portfolio_returns, cumulative_returns, risk_free_rate=0)
+        result = Result(portfolio_returns, cumulative_returns, risk_free_rate=0,trade_stats=result_trade )
 
         return result
 
@@ -165,4 +165,7 @@ class Backtester:
 
         result_trade = self.evaluate_trade(shifted_positions)
 
-        return asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns
+        return asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade
+
+
+
