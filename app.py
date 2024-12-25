@@ -1,3 +1,10 @@
+#################################### WARNING ###################################
+# pour lancer l'interface faut entrer la commande suivante  directement dans la console: streamlit run app.py
+#si streamlit pas installer : pip install streamlit
+
+##################################################################################
+
+
 import streamlit as st
 import pandas as pd
 from Backtester import Backtester
