@@ -11,7 +11,7 @@ from Backtester import Backtester
 from RSI import RSI
 from BollingerBands import BollingerBands
 from MeanReversion import MeanReversion
-from Moving_Average import MovingAverage
+from MovingAverage import MovingAverage
 
 
 @st.cache_data
