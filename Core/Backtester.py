@@ -1,14 +1,17 @@
 import pandas as pd
 import Strategy
 from Result import Result
+from Calendar import Calendar
 from Utils.Tools import load_data
+
 
 class Backtester:
     """
     Classe permettant de backtester une stratégie financière sur un ensemble de données.
     """
 
-    def __init__(self, data_source, special_start=1, transaction_cost=0.0, slippage=0.0):
+    def __init__(self, data_source, special_start=1, transaction_cost=0.0, slippage=0.0,
+                 rebalancing_frequency='monthly'):
         """
         Initialise l'objet Backtester.
 
@@ -22,55 +25,59 @@ class Backtester:
         self.transaction_cost = transaction_cost
         self.slippage = slippage
 
-    def run(self, strategy: Strategy, rebalancing_frequency: str):
+        # Détermination des bornes pour le calendrier
+        self.start_date = self.data.index[0].strftime('%Y-%m-%d')
+        self.end_date = self.data.index[-1].strftime('%Y-%m-%d')
+
+        self.calendar = Calendar(
+            frequency=rebalancing_frequency,
+            start_date=self.start_date,
+            end_date=self.end_date
+        )
+
+    def run(self, strategy: Strategy):
         """
         Exécute la stratégie donnée sur les données de marché.
 
         :param strategy: Instance de la classe Strategy définissant les signaux d'achat/vente.
-        :param rebalancing_frequency: Fréquence de rebalancement en nombre de périodes.
         :return: Instance de la classe Result contenant les résultats du backtest.
         """
-        composition_matrix = self.calculate_composition_matrix(strategy, rebalancing_frequency)
-        asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade = self.calculate_returns(
-            composition_matrix
+        composition_matrix = self.calculate_composition_matrix(strategy)
+        asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade = \
+            self.calculate_returns(composition_matrix)
+
+        result = Result(
+            portfolio_returns=portfolio_returns,
+            cumulative_returns=cumulative_returns,
+            risk_free_rate=0,
+            trade_stats=result_trade
         )
-
-        result = Result(portfolio_returns, cumulative_returns, risk_free_rate=0,trade_stats=result_trade )
-
         return result
 
-    def calculate_composition_matrix(self, strategy: Strategy, rebalancing_frequency: str):
+    def calculate_composition_matrix(self, strategy: Strategy):
         """
         Calcule la matrice des positions du portefeuille au cours du temps.
 
         :param strategy: Instance de la classe Strategy définissant les signaux d'achat/vente.
-        :param rebalancing_frequency: Fréquence de rebalancement en nombre de périodes.
         :return: DataFrame Pandas représentant les positions du portefeuille.
         """
         assets = self.data.columns
-        dates = self.data.index
-        composition_matrix = pd.DataFrame(index=dates, columns=assets, dtype="float64")
+        trading_dates = pd.to_datetime(self.calendar.all_dates)
+        trading_dates = trading_dates.intersection(self.data.index)
+        rebalancing_dates = self.calendar.rebalancing_dates
 
-        # Détermine les dates de rebalancement en fonction de la fréquence spécifiée
-        if rebalancing_frequency == "daily":
-            rebalancing_dates = dates
-        elif rebalancing_frequency == "weekly":
-            rebalancing_dates = dates[dates.to_series().dt.weekday == 0]
-        elif rebalancing_frequency == "semi-monthly":
-            rebalancing_dates = dates[(dates.to_series().dt.day == 1) | (dates.to_series().dt.day == 15)]
-        elif rebalancing_frequency == "monthly":
-            rebalancing_dates = dates[dates.to_series().dt.is_month_start]
-        elif rebalancing_frequency == "quarterly":
-            rebalancing_dates = dates[dates.to_series().dt.is_quarter_start]
-        else:
-            raise ValueError("Unsupported rebalancing frequency. Choose from 'daily', 'weekly', 'semi-monthly', 'monthly', 'quarterly'.")
+        composition_matrix = pd.DataFrame(
+            index=trading_dates,
+            columns=assets,
+            dtype="float64"
+        )
 
         # Initialisation des positions pour chaque actif
         for asset in assets:
             current_position = 0
 
-            for date_index in range(self.special_start, len(dates)):
-                current_date = dates[date_index]
+            for date_index in range(self.special_start, len(trading_dates)):
+                current_date = trading_dates[date_index]
                 current_df = self.data.iloc[:date_index + 1][asset]
 
                 # Mise à jour des positions aux dates de rebalancement
@@ -116,7 +123,7 @@ class Backtester:
 
                     # Check if the trade was a winning trade
                     if (last_position > 0 and current_value > last_trade_value) or \
-                       (last_position < 0 and current_value < last_trade_value):
+                            (last_position < 0 and current_value < last_trade_value):
                         win_trade_count += 1
 
                     # Update last_trade_value and last_position
@@ -166,6 +173,3 @@ class Backtester:
         result_trade = self.evaluate_trade(shifted_positions)
 
         return asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade
-
-
-
