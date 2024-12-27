@@ -8,10 +8,10 @@
 import streamlit as st
 import pandas as pd
 from Backtester import Backtester
-from RSI import RSI
-from BollingerBands import BollingerBands
-from MeanReversion import MeanReversion
-from MovingAverage import MovingAverage
+from Strategies.RSI import RSI
+from Strategies.BollingerBands import BollingerBands
+from Strategies.MeanReversion import MeanReversion
+from Strategies.MovingAverage import MovingAverage
 
 
 @st.cache_data

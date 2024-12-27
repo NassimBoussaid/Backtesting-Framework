@@ -1,6 +1,5 @@
-from Strategy import Strategy
+from Core.Strategy import Strategy
 import pandas as pd
-import numpy as np
 
 
 class MeanReversion(Strategy):

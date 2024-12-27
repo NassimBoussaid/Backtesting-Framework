@@ -1,19 +1,19 @@
-from Strategy import Strategy
+from Core.Strategy import Strategy
 import pandas as pd
 import numpy as np
 
-class Quality(Strategy):
+class Value(Strategy):
     """
-    Stratégie Quality : Achète les actions de meilleure qualité (ROE élevé et ROA élevé)
-    et vend les actions de moins bonne qualité.
+    Stratégie Value : Achète les actions les plus sous-évaluées et vend les actions
+    les plus surévaluées.
 
-    L'attribution des scores se fait selon deux métriques : le ROE (Return on Equity)
-    et le ROA (Return on Assets).
+    L'attribution des scores se fait selon deux métriques : le PER (Price Earning Ratio)
+    et le PBR (Price to Book Ratio).
     """
 
     def __init__(self, window: int = 30, assets_picked_long: int = 5, assets_picked_short: int = 5):
         """
-        Initialisation de la stratégie Quality.
+        Initialisation de la stratégie Value.
 
         :param window: Période, en nombre de jours, de la fenêtre glissante pour lisser les métriques.
         :param assets_picked_long: Nombre d'actifs à acheter.
@@ -23,41 +23,41 @@ class Quality(Strategy):
         self.assets_picked_long = assets_picked_long
         self.assets_picked_short = assets_picked_short
         # DataFrame qui contiendra les scores finaux pour chaque actif et chaque date.
+        # Les actifs avec les plus hauts scores sont achetés, ceux avec les plus bas sont vendus.
         self.ranking_df = None
 
     def fit(self, data):
         """
-        Calcul du rang de chaque actif selon son ROE et ROA sur la dernière fenêtre glissante.
-        Plus le ROE est haut, plus l'actif est de qualité et ainsi plus le score est élevé.
-        Plus le ROA est haut, plus l'actif est de qualité et ainsi plus le score est élevé.
+        Calcul du rang de chaque actif selon son PER et PBR sur la dernière fenêtre glissante.
+        Plus le PER est bas, plus l'actif est sous-évalué et ainsi plus le score est élevé.
+        Plus le PBR est bas, plus l'actif est surévalué et ainsi plus le score est élevé.
 
-        :param data: Dictionnaire contenant deux DataFrames pour les métriques ROE et ROA.
+        :param data: Dictionnaire contenant deux DataFrames pour les métriques PER et PBR.
         """
-        # Vérification que les données soient bien un dictionnaire avec les clés "ROE" et "ROA"
+        # Vérification que les données soient bien un dictionnaire avec les clés "PER" et "PBR"
         if not isinstance(data, dict):
-            raise TypeError("Les données doivent être passées sous forme d'un dictionnaire {'ROE': df_roe, 'ROA': df_roa}.")
-        if "ROE" not in data or "ROA" not in data:
-            raise KeyError("Le dictionnaire 'data' doit contenir les clés 'ROE' et 'ROA'.")
+            raise TypeError("Les données doivent être passées sous forme d'un dictionnaire {'PER': df_per, 'PBR': df_pbr}.")
+        if "PER" not in data or "PBR" not in data:
+            raise KeyError("Le dictionnaire 'data' doit contenir les clés 'PER' et 'PBR'.")
 
-        roe_df = data["ROE"]
-        roa_df = data["ROA"]
+        per_df = data["PER"]
+        pbr_df = data["PBR"]
+        # Remplacement des valeurs invalides "#N/A N/A" (format Bloomberg) par NaN
+        per_df.replace("#N/A N/A", np.nan, inplace=True)
+        pbr_df.replace("#N/A N/A", np.nan, inplace=True)
 
-        # Remplacement des valeurs invalides "#N/A N/A" par NaN
-        roe_df.replace("#N/A N/A", np.nan, inplace=True)
-        roa_df.replace("#N/A N/A", np.nan, inplace=True)
+        # Calcul des moyennes glissantes pour le PER et le PBR
+        per_rolling = per_df.rolling(self.window).mean()
+        pbr_rolling = pbr_df.rolling(self.window).mean()
 
-        # Calcul des moyennes glissantes pour le ROE et le ROA
-        roe_rolling = roe_df.rolling(self.window).mean()
-        roa_rolling = roa_df.rolling(self.window).mean()
-
-        # Calcul des rangs pour le ROE et le ROA
-        roe_score = roe_rolling.rank(axis=1, method="first", ascending=True)
-        roa_score = roa_rolling.rank(axis=1, method="first", ascending=True)
+        # Calcul des rangs pour le PER et le PBR
+        per_score = per_rolling.rank(axis=1, method="first", ascending=False)
+        pbr_score = pbr_rolling.rank(axis=1, method="first", ascending=False)
 
         # Calcul du score moyen en combinant les deux rangs
-        combined_score = (roe_score + roa_score) / 2
+        combined_score = (per_score + pbr_score) / 2
 
-        # Calcul du score final : plus le score est élevé, plus le rang est élevé
+        # Calcul du score final (basé sur le score combiné)
         self.ranking_df = combined_score.rank(axis=1, method="min", ascending=True)
 
     def get_position(self, historical_data: pd.Series, current_position: float) -> float:
@@ -83,7 +83,7 @@ class Quality(Strategy):
         if pd.isna(rank_value):
             return 0.0
 
-        # Exclusion des NaN pour calculer le nombre total d'actifs à la date donnée
+        # Exclusion des NaN pour calcul le nombre total d'actifs à la date donnée
         valid_tickers = self.ranking_df.loc[current_date].dropna()
         total_tickers = len(valid_tickers)
 

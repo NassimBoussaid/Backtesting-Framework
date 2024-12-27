@@ -1,19 +1,18 @@
-from Strategy import Strategy
+from Core.Strategy import Strategy
 import pandas as pd
 import numpy as np
 
-class Value(Strategy):
+class Size(Strategy):
     """
-    Stratégie Value : Achète les actions les plus sous-évaluées et vend les actions
-    les plus surévaluées.
+    Stratégie Size : Achète les actions avec la plus petite capitalisation boursière
+    et vend les actions avec la plus grande capitalisation boursière.
 
-    L'attribution des scores se fait selon deux métriques : le PER (Price Earning Ratio)
-    et le PBR (Price to Book Ratio).
+    L'attribution des scores se fait sur une seule métrique : la capitalisation boursière.
     """
 
     def __init__(self, window: int = 30, assets_picked_long: int = 5, assets_picked_short: int = 5):
         """
-        Initialisation de la stratégie Value.
+        Initialisation de la stratégie Size.
 
         :param window: Période, en nombre de jours, de la fenêtre glissante pour lisser les métriques.
         :param assets_picked_long: Nombre d'actifs à acheter.
@@ -23,42 +22,30 @@ class Value(Strategy):
         self.assets_picked_long = assets_picked_long
         self.assets_picked_short = assets_picked_short
         # DataFrame qui contiendra les scores finaux pour chaque actif et chaque date.
-        # Les actifs avec les plus hauts scores sont achetés, ceux avec les plus bas sont vendus.
         self.ranking_df = None
 
-    def fit(self, data):
+    def fit(self, market_cap_data):
         """
-        Calcul du rang de chaque actif selon son PER et PBR sur la dernière fenêtre glissante.
-        Plus le PER est bas, plus l'actif est sous-évalué et ainsi plus le score est élevé.
-        Plus le PBR est bas, plus l'actif est surévalué et ainsi plus le score est élevé.
+        Calcul du rang de chaque actif selon sa capitalisation boursière sur la dernière fenêtre glissante.
+        Plus la capitalisation est basse, plus le score est élevé.
 
-        :param data: Dictionnaire contenant deux DataFrames pour les métriques PER et PBR.
+        :param market_cap_data: DataFrame contenant les capitalisations boursières des actifs.
         """
-        # Vérification que les données soient bien un dictionnaire avec les clés "PER" et "PBR"
-        if not isinstance(data, dict):
-            raise TypeError("Les données doivent être passées sous forme d'un dictionnaire {'PER': df_per, 'PBR': df_pbr}.")
-        if "PER" not in data or "PBR" not in data:
-            raise KeyError("Le dictionnaire 'data' doit contenir les clés 'PER' et 'PBR'.")
+        # Vérification des données
+        if not isinstance(market_cap_data, pd.DataFrame):
+            raise TypeError("Les données doivent être un DataFrame Pandas contenant les capitalisations boursières.")
 
-        per_df = data["PER"]
-        pbr_df = data["PBR"]
-        # Remplacement des valeurs invalides "#N/A N/A" (format Bloomberg) par NaN
-        per_df.replace("#N/A N/A", np.nan, inplace=True)
-        pbr_df.replace("#N/A N/A", np.nan, inplace=True)
+        # Remplacement des valeurs invalides "#N/A N/A" ou autres par NaN
+        market_cap_data.replace("#N/A N/A", np.nan, inplace=True)
 
-        # Calcul des moyennes glissantes pour le PER et le PBR
-        per_rolling = per_df.rolling(self.window).mean()
-        pbr_rolling = pbr_df.rolling(self.window).mean()
+        # Calcul des moyennes glissantes pour lisser les capitalisations boursières
+        market_cap_rolling = market_cap_data.rolling(self.window).mean()
 
-        # Calcul des rangs pour le PER et le PBR
-        per_score = per_rolling.rank(axis=1, method="first", ascending=False)
-        pbr_score = pbr_rolling.rank(axis=1, method="first", ascending=False)
+        # Calcul des rangs pour la capitalisation boursière
+        market_cap_score = market_cap_rolling.rank(axis=1, method="first", ascending=False)
 
-        # Calcul du score moyen en combinant les deux rangs
-        combined_score = (per_score + pbr_score) / 2
-
-        # Calcul du score final (basé sur le score combiné)
-        self.ranking_df = combined_score.rank(axis=1, method="min", ascending=True)
+        # Calcul du score final (basé uniquement sur le rang de la capitalisation boursière)
+        self.ranking_df = market_cap_score.rank(axis=1, method="min", ascending=True)
 
     def get_position(self, historical_data: pd.Series, current_position: float) -> float:
         """
