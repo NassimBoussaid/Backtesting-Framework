@@ -1,5 +1,5 @@
 #################################### WARNING ###################################
-# pour lancer l'interface faut entrer la commande suivante  directement dans la console: streamlit run app.py
+# pour lancer l'interface faut entrer la commande suivante directement dans la console: streamlit run app.py
 #si streamlit pas installer : pip install streamlit
 
 ##################################################################################

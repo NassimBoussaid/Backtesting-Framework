@@ -10,8 +10,8 @@ class Backtester:
     Classe permettant de backtester une stratégie financière sur un ensemble de données.
     """
 
-    def __init__(self, data_source, special_start=1, transaction_cost=0.0, slippage=0.0,
-                 rebalancing_frequency='monthly'):
+    def __init__(self, data_source, multi_assets=False, special_start=1, transaction_cost=0.0,
+                 slippage=0.0, rebalancing_frequency='monthly'):
         """
         Initialise l'objet Backtester.
 
@@ -22,6 +22,7 @@ class Backtester:
         """
         self.data = load_data(data_source)
         self.special_start = special_start
+        self.multi_assets = multi_assets
         self.transaction_cost = transaction_cost
         self.slippage = slippage
 
@@ -65,26 +66,36 @@ class Backtester:
         trading_dates = pd.to_datetime(self.calendar.all_dates)
         trading_dates = trading_dates.intersection(self.data.index)
         rebalancing_dates = self.calendar.rebalancing_dates
-
         composition_matrix = pd.DataFrame(
             index=trading_dates,
             columns=assets,
             dtype="float64"
         )
 
-        # Initialisation des positions pour chaque actif
-        for asset in assets:
+        if self.multi_assets:
             current_position = 0
-
             for date_index in range(self.special_start, len(trading_dates)):
                 current_date = trading_dates[date_index]
-                current_df = self.data.iloc[:date_index + 1][asset]
-
+                current_df = self.data.loc[:current_date]
                 # Mise à jour des positions aux dates de rebalancement
                 if current_date in rebalancing_dates:
                     current_position = strategy.get_position(current_df, current_position)
 
-                composition_matrix.at[current_date, asset] = current_position
+                composition_matrix.loc[current_date] = current_position
+        else:
+            # Initialisation des positions pour chaque actif
+            for asset in assets:
+                current_position = 0
+
+                for date_index in range(self.special_start, len(trading_dates)):
+                    current_date = trading_dates[date_index]
+                    current_df = self.data.loc[:current_date][asset]
+
+                    # Mise à jour des positions aux dates de rebalancement
+                    if current_date in rebalancing_dates:
+                        current_position = strategy.get_position(current_df, current_position)
+
+                    composition_matrix.at[current_date, asset] = current_position
 
         return composition_matrix
 
