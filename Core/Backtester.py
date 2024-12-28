@@ -63,8 +63,7 @@ class Backtester:
         :return: DataFrame Pandas représentant les positions du portefeuille.
         """
         assets = self.data.columns
-        trading_dates = pd.to_datetime(self.calendar.all_dates)
-        trading_dates = trading_dates.intersection(self.data.index)
+        trading_dates = self.data.index
         rebalancing_dates = self.calendar.rebalancing_dates
         composition_matrix = pd.DataFrame(
             index=trading_dates,
