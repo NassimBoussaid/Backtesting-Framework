@@ -7,7 +7,7 @@ from Strategies.MinVariance import MinVariance
 # ahah = Backtester(historical_data, special_start=100)
 # moving_average_strategy = MovingAverage(7, 100, exponential_mode=False)
 # result = ahah.run(moving_average_strategy, "daily")
-
+"""
 price_data = pd.read_csv("Datasets/S&P500_PX_LAST.csv", index_col=0, parse_dates=True)
 backtester = Backtester(price_data, multi_assets=False, special_start=30, rebalancing_frequency="monthly")
 
@@ -32,4 +32,3 @@ result = backtester.run(strategy)
 result.display_statistics()
 result.plot_cumulative_returns()
 result.plot_portfolio_returns()
-"""
