@@ -10,8 +10,10 @@ class Backtester:
     Classe permettant de backtester une stratégie financière sur un ensemble de données.
     """
 
-    def __init__(self, data_source, weight_scheme='EqualWeight', market_cap_source=None, special_start=1, transaction_cost=0.0,
-                 slippage=0.0, risk_free_rate=0.0, rebalancing_frequency='monthly'):
+    def __init__(self, data_source, weight_scheme='EqualWeight', market_cap_source=None, special_start=1,
+                 transaction_cost=0.0,
+                 slippage=0.0, risk_free_rate=0.0, rebalancing_frequency='monthly',
+                 plot_librairy="matplotlib"):
         """
         Initialise l'objet Backtester.
 
@@ -27,6 +29,8 @@ class Backtester:
                          (par défaut : 0.0).
         :param risk_free_rate: Taux sans risque marché (par défaut : 0.0).
         :param rebalancing_frequency: Fréquence de rebalancement ('monthly', 'weekly', etc.).
+        :param plot_librairy (str): choix de la bibliothèque d'affichage
+
         """
         self.data = load_data(data_source)
         self.weight_scheme = weight_scheme
@@ -53,6 +57,7 @@ class Backtester:
 
         # Initialisation de la weight_matrix
         self.weight_matrix = None
+        self.plot_librairy = plot_librairy
 
     def load_market_caps(self):
         """
