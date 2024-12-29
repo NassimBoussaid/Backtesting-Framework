@@ -1,4 +1,4 @@
-from Backtester import Backtester
+from backtesting_framework.Core.Backtester import Backtester
 import pandas as pd
 from backtesting_framework.Strategies.Value import Value
 from backtesting_framework.Strategies.MinVariance import MinVariance

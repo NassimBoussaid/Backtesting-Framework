@@ -4,10 +4,9 @@
 
 ##################################################################################
 
-
 import streamlit as st
 import pandas as pd
-from Backtester import Backtester
+from backtesting_framework.Core.Backtester import Backtester
 from backtesting_framework.Strategies.RSI import RSI
 from backtesting_framework.Strategies.BollingerBands import BollingerBands
 from backtesting_framework.Strategies.MeanReversion import MeanReversion

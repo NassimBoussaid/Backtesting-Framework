@@ -16,6 +16,7 @@ plotly = "^5.24.1"
 scipy = "^1.13.1"
 workalendar = "^17.0.0"
 streamlit = "^1.41.1"
+ipykernel = "^6.29.5"
 
 
 [tool.poetry.group.dev.dependencies]

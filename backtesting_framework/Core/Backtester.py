@@ -1,7 +1,7 @@
 import pandas as pd
-import Strategy
-from Result import Result
-from Calendar import Calendar
+from backtesting_framework.Core.Strategy import Strategy
+from backtesting_framework.Core.Result import Result
+from backtesting_framework.Core.Calendar import Calendar
 from backtesting_framework.Utils.Tools import load_data
 
 
