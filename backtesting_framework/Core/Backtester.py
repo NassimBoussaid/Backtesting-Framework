@@ -95,7 +95,8 @@ class Backtester:
             portfolio_returns=portfolio_returns,
             cumulative_returns=cumulative_returns,
             risk_free_rate=self.rfr,
-            trade_stats=result_trade
+            trade_stats=result_trade,
+            plot_library=self.plot_library
         )
         return result
 
