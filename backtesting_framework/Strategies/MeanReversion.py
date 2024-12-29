@@ -1,4 +1,4 @@
-from Core.Strategy import Strategy
+from backtesting_framework.Core.Strategy import Strategy
 import pandas as pd
 
 

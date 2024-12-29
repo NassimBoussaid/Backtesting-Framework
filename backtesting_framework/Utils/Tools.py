@@ -1,4 +1,3 @@
-# Tools.py
 import pandas as pd
 
 def load_data(data_source):

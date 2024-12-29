@@ -2,7 +2,7 @@ import pandas as pd
 import Strategy
 from Result import Result
 from Calendar import Calendar
-from Utils.Tools import load_data
+from backtesting_framework.Utils.Tools import load_data
 
 
 class Backtester:

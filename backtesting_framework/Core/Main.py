@@ -1,7 +1,7 @@
 from Backtester import Backtester
 import pandas as pd
-from Strategies.Value import Value
-from Strategies.MinVariance import MinVariance
+from backtesting_framework.Strategies.Value import Value
+from backtesting_framework.Strategies.MinVariance import MinVariance
 
 # historical_data = pd.read_excel("Data_.xlsx", index_col=0)
 # ahah = Backtester(historical_data, special_start=100)
