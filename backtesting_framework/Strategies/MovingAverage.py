@@ -17,6 +17,7 @@ class MovingAverage(Strategy):
         column : str
             The column name of the asset prices in the historical DataFrame.
         """
+        super().__init__(multi_asset=False)
         self.short_window = short_window
         self.long_window = long_window
         self.exponential_mode = exponential_mode

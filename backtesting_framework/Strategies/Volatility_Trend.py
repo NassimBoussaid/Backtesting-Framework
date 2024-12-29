@@ -16,6 +16,7 @@ class VolatilityTrendStrategy(Strategy):
         atr_threshold : float
             Threshold for the ATR.
         """
+        super().__init__(multi_asset=False)
         self.atr_period = atr_period
         self.dmi_period = dmi_period
         self.atr_threshold = atr_threshold

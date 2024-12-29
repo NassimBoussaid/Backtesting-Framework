@@ -16,6 +16,7 @@ class KeltnerChannelStrategy(Strategy):
         sma_period : int
             Number of periods for the SMA calculation.
         """
+        super().__init__(multi_asset=False)
         self.atr_period = atr_period
         self.atr_multiplier = atr_multiplier
         self.sma_period = sma_period

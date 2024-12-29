@@ -14,6 +14,7 @@ class MeanReversion(Strategy):
         zscore_threshold : float
             Seuil du z-score pour prendre une position. Exemple: 1.0, 1.5, 2.0
         """
+        super().__init__(multi_asset=False)
         self.window = window
         self.zscore_threshold = zscore_threshold
 

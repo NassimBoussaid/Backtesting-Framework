@@ -11,6 +11,7 @@ class BuyAndHold(Strategy):
         """
         Initialisation de la stratégie Buy and Hold.
         """
+        super().__init__(multi_asset=False)
         pass
 
     def fit(self, data):

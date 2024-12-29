@@ -14,6 +14,7 @@ class BollingerBands(Strategy):
         num_std_dev : float
             Nombre d'écarts types pour les bandes supérieure et inférieure.
         """
+        super().__init__(multi_asset=False)
         self.window = window
         self.num_std_dev = num_std_dev
 

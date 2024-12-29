@@ -13,6 +13,7 @@ class MinVariance(Strategy):
         """
         Initialisation de la stratégie Min Variance.
         """
+        super().__init__(multi_asset=True)
         self.short_sell = short_sell
 
     def fit(self, data):

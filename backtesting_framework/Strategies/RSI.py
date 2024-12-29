@@ -15,6 +15,7 @@ class RSI(Strategy):
         :param oversold_threshold: Seuil de survente (par défaut 30).
         :param overbought_threshold: Seuil de surachat (par défaut 70).
         """
+        super().__init__(multi_asset=False)
         self.period = period
         self.oversold_threshold = oversold_threshold
         self.overbought_threshold = overbought_threshold

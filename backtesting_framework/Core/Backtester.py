@@ -10,8 +10,7 @@ class Backtester:
     Classe permettant de backtester une stratégie financière sur un ensemble de données.
     """
 
-    def __init__(self, data_source, weight_scheme='EqualWeight', market_cap_source=None,
-                 multi_assets=False, special_start=1, transaction_cost=0.0,
+    def __init__(self, data_source, weight_scheme='EqualWeight', market_cap_source=None, special_start=1, transaction_cost=0.0,
                  slippage=0.0, risk_free_rate=0.0, rebalancing_frequency='monthly'):
         """
         Initialise l'objet Backtester.
@@ -32,7 +31,6 @@ class Backtester:
         self.data = load_data(data_source)
         self.weight_scheme = weight_scheme
         self.market_cap_source = market_cap_source
-        self.multi_assets = multi_assets
         self.special_start = special_start
         self.transaction_cost = transaction_cost
         self.slippage = slippage
@@ -112,7 +110,7 @@ class Backtester:
             dtype="float64"
         )
 
-        if self.multi_assets:
+        if strategy.multi_asset:
             current_position = 0
             for date_index in range(self.special_start, len(trading_dates)):
                 current_date = trading_dates[date_index]
@@ -122,6 +120,7 @@ class Backtester:
                     current_position = strategy.get_position(current_df, current_position)
 
                 composition_matrix.loc[current_date] = current_position
+
         else:
             # Initialisation des positions pour chaque actif
             for asset in assets:

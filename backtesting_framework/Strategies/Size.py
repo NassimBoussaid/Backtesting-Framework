@@ -18,6 +18,7 @@ class Size(Strategy):
         :param assets_picked_long: Nombre d'actifs à acheter.
         :param assets_picked_short: Nombre d'actifs à vendre.
         """
+        super().__init__(multi_asset=False)
         self.window = window
         self.assets_picked_long = assets_picked_long
         self.assets_picked_short = assets_picked_short
