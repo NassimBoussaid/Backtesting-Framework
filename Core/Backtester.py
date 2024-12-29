@@ -12,7 +12,7 @@ class Backtester:
 
     def __init__(self, data_source, weight_scheme='EqualWeight', market_cap_source=None,
                  multi_assets=False, special_start=1, transaction_cost=0.0,
-                 slippage=0.0, rebalancing_frequency='monthly'):
+                 slippage=0.0, risk_free_rate=0.0, rebalancing_frequency='monthly'):
         """
         Initialise l'objet Backtester.
 
@@ -26,6 +26,7 @@ class Backtester:
         :param transaction_cost: Montant des coûts de transaction par rebalancement (par défaut : 0.0).
         :param slippage: Montant des coûts de slippage (exécution différente de l'ordre) par rebalancement
                          (par défaut : 0.0).
+        :param risk_free_rate: Taux sans risque marché (par défaut : 0.0).
         :param rebalancing_frequency: Fréquence de rebalancement ('monthly', 'weekly', etc.).
         """
         self.data = load_data(data_source)
@@ -35,6 +36,7 @@ class Backtester:
         self.special_start = special_start
         self.transaction_cost = transaction_cost
         self.slippage = slippage
+        self.rfr = risk_free_rate
 
         # Charger et aligner les données de capitalisation boursière si nécessaire
         if self.weight_scheme == 'MarketCapWeight':
@@ -89,7 +91,7 @@ class Backtester:
         result = Result(
             portfolio_returns=portfolio_returns,
             cumulative_returns=cumulative_returns,
-            risk_free_rate=0,
+            risk_free_rate=self.rfr,
             trade_stats=result_trade
         )
         return result
@@ -212,8 +214,7 @@ class Backtester:
         asset_returns = self.data.pct_change().fillna(0)
 
         # Décalage des positions pour éviter un biais : les positions utilisées en t sont décidées en t-1
-        weighted_position = composition_matrix * self.weight_matrix
-        shifted_weights = weighted_position.shift(1).fillna(0)
+        shifted_weights = self.weight_matrix.shift(1).fillna(0)
 
         # Calcul des coûts de transaction et de slippage
         transaction_costs = self.calculate_transaction_costs(shifted_weights)
