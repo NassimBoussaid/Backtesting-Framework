@@ -1,13 +1,12 @@
 from backtesting_framework.Core.Strategy import Strategy
 import pandas as pd
 
-
 class RSI(Strategy):
     """
     Stratégie RSI : achète si RSI < oversold_threshold, vend si RSI > overbought_threshold.
     """
 
-    def __init__(self, period:int, oversold_threshold: int, overbought_threshold: int):
+    def __init__(self, period: int, oversold_threshold: int, overbought_threshold: int):
         """
         Initialise la stratégie RSI avec ses paramètres.
 
@@ -30,6 +29,10 @@ class RSI(Strategy):
         :return: Nouvelle position : 1, -1 ou 0 (selon la logique RSI).
         """
 
+        # Vérification des données manquantes et nettoyage
+        if historical_data.isna().any().any():
+            historical_data = historical_data.ffill().bfill()
+
         # On s'assure qu'on a suffisamment d'historique pour calculer le RSI
         if len(historical_data) < self.period:
             return current_position
@@ -49,7 +52,6 @@ class RSI(Strategy):
             return -1
         else:
             # Sinon, on peut choisir de rester à 0 ou de conserver la position courante
-            # return current_position
             return 0
 
     def compute_rsi(self, prices, period: int):
@@ -70,15 +72,15 @@ class RSI(Strategy):
         gains = delta.where(delta > 0, 0.0)
         losses = delta.where(delta < 0, 0.0).abs()
 
-        # Moyenne des gains et pertes sur "period" périodes (méthode exponentielle lissée, standard pour le RSI)
-        # On démarre par une moyenne arithmétique des "period" premières valeurs,
-        # puis on utilise la méthode lissée (Wilders).
+        # Vérifier que nous avons suffisamment de données
+        if len(gains) < period:
+            return 50.0  # Retourne une valeur neutre si les données sont insuffisantes
 
+        # Moyenne des gains et pertes sur "period" périodes (méthode exponentielle lissée, standard pour le RSI)
         avg_gain = gains.rolling(window=period, min_periods=period).mean().iloc[period - 1]
         avg_loss = losses.rolling(window=period, min_periods=period).mean().iloc[period - 1]
 
         # Ensuite, on fait le calcul progressif lissé en partant de la période "period+1"
-        # pour chaque nouvelle valeur de gain/perte, on met à jour selon la formule de Wilders.
         for i in range(period, len(gains)):
             avg_gain = (avg_gain * (period - 1) + gains.iloc[i]) / period
             avg_loss = (avg_loss * (period - 1) + losses.iloc[i]) / period
@@ -97,3 +99,6 @@ class RSI(Strategy):
         Méthode de fit (optionnelle). Peut être laissée vide si la stratégie ne nécessite pas d'entraînement.
         """
         pass
+
+
+
