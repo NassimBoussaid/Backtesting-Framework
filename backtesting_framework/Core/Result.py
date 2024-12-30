@@ -256,7 +256,8 @@ class Result:
     def compare(self, other_results, strategy_names=None, streamlit_display=False):
         """
         Compare l'objet actuel (self) avec d'autres objets Result passés en paramètre.
-        Affiche (ou retourne) un tableau comparatif.
+        Affiche (ou retourne) un tableau comparatif ET trace un graphique comparant
+        les rendements cumulés de toutes les stratégies.
 
         :param other_results: list
             Liste d'instances de la classe Result (à comparer avec self).
@@ -264,18 +265,17 @@ class Result:
             Liste des noms des stratégies, y compris celui de l'objet self en premier.
             Si None ou de taille incorrecte, des noms par défaut seront générés.
         :param streamlit_display: bool, optionnel
-            Si True, affiche le tableau via Streamlit. Sinon, l'affiche dans la console.
+            Si True, affiche le tableau et le graphique via Streamlit.
+            Sinon, imprime le tableau dans la console et affiche le graphique via la librairie choisie.
         :return: pd.DataFrame
             Un DataFrame contenant la comparaison des stratégies.
         """
 
-        total_strategies = 1 + len(other_results)
+        all_results = [self] + other_results
+        total_strategies = len(all_results)
 
-        # S’il n’y a pas de noms ou si le nombre de noms ne correspond pas, on génère des noms par défaut
         if not strategy_names or len(strategy_names) != total_strategies:
             strategy_names = [f"Strategy {i + 1}" for i in range(total_strategies)]
-
-        all_results = [self] + other_results
 
         data = []
         for idx, res in enumerate(all_results):
@@ -298,6 +298,7 @@ class Result:
 
         df_comparison = pd.DataFrame(data)
 
+        # Affichage du tableau (Streamlit ou console)
         if streamlit_display:
             import streamlit as st
             st.subheader("Comparaison de stratégies")
@@ -306,6 +307,67 @@ class Result:
             print("\nComparaison de stratégies")
             print("------------------------------------------")
             print(df_comparison.to_string(index=False))
+
+        # 5Construction d'un DataFrame avec les rendements cumulés de chaque stratégie
+        df_cum_returns = pd.DataFrame()
+        for idx, res in enumerate(all_results):
+            col_name = strategy_names[idx]
+            if df_cum_returns.empty:
+                df_cum_returns = res.cumulative_returns.to_frame(name=col_name)
+            else:
+                df_cum_returns = df_cum_returns.join(
+                    res.cumulative_returns.to_frame(name=col_name),
+                    how='outer'
+                )
+
+        df_cum_returns.fillna(method='ffill', inplace=True)
+
+        # Graphique comparant les rendements cumulés
+        if self.plot_library in ['matplotlib', 'seaborn']:
+            plt.figure(figsize=(10, 6))
+
+            if self.plot_library == 'seaborn':
+                sns.set(style="darkgrid")
+
+            for col in df_cum_returns.columns:
+                plt.plot(df_cum_returns.index, df_cum_returns[col], label=col)
+
+            plt.title("Comparaison des Rendements Cumulés")
+            plt.xlabel("Date")
+            plt.ylabel("Rendements Cumulés")
+            plt.legend()
+            plt.grid(True)
+
+            if streamlit_display:
+                import streamlit as st
+                st.pyplot(plt)
+                plt.close()
+            else:
+                plt.show()
+
+        elif self.plot_library == 'plotly':
+            df_long = df_cum_returns.reset_index().melt(
+                id_vars=df_cum_returns.index.name or 'index',
+                var_name='Strategy',
+                value_name='Cumulative Return'
+            )
+            time_col = df_cum_returns.index.name if df_cum_returns.index.name else 'index'
+
+            fig = px.line(
+                df_long,
+                x=time_col,
+                y='Cumulative Return',
+                color='Strategy',
+                labels={'Cumulative Return': 'Rendements Cumulés'},
+                title="Comparaison des Rendements Cumulés"
+            )
+            fig.update_layout(xaxis_title="Date", yaxis_title="Rendements Cumulés")
+
+            if streamlit_display:
+                import streamlit as st
+                st.plotly_chart(fig)
+            else:
+                fig.show(renderer="browser")
 
         return df_comparison
 
