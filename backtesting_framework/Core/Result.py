@@ -253,6 +253,62 @@ class Result:
             for key, val in stats.items():
                 print(f"{key} : {val}")
 
+    def compare(self, other_results, strategy_names=None, streamlit_display=False):
+        """
+        Compare l'objet actuel (self) avec d'autres objets Result passés en paramètre.
+        Affiche (ou retourne) un tableau comparatif.
+
+        :param other_results: list
+            Liste d'instances de la classe Result (à comparer avec self).
+        :param strategy_names: list, optionnel
+            Liste des noms des stratégies, y compris celui de l'objet self en premier.
+            Si None ou de taille incorrecte, des noms par défaut seront générés.
+        :param streamlit_display: bool, optionnel
+            Si True, affiche le tableau via Streamlit. Sinon, l'affiche dans la console.
+        :return: pd.DataFrame
+            Un DataFrame contenant la comparaison des stratégies.
+        """
+
+        total_strategies = 1 + len(other_results)
+
+        # S’il n’y a pas de noms ou si le nombre de noms ne correspond pas, on génère des noms par défaut
+        if not strategy_names or len(strategy_names) != total_strategies:
+            strategy_names = [f"Strategy {i + 1}" for i in range(total_strategies)]
+
+        all_results = [self] + other_results
+
+        data = []
+        for idx, res in enumerate(all_results):
+            data.append({
+                'Strategy': strategy_names[idx],
+                'Total Return': res.total_return,
+                'Annualized Return': res.annualized_return,
+                'Volatility': res.volatility,
+                'Sharpe Ratio': res.sharpe_ratio,
+                'Max Drawdown': res.max_drawdown,
+                'Max DD Recovery (days)': res.max_drawdown_recovery_time,
+                'Sortino Ratio': res.sortino_ratio,
+                'Calmar Ratio': res.calmar_ratio,
+                'Skewness': res.skewness,
+                'Kurtosis': res.kurtosis,
+                'Win Rate': res.win_rate,
+                'VaR(5%)': res.calculate_var(0.05),
+                'ES(5%)': res.calculate_expected_shortfall(0.05),
+            })
+
+        df_comparison = pd.DataFrame(data)
+
+        if streamlit_display:
+            import streamlit as st
+            st.subheader("Comparaison de stratégies")
+            st.dataframe(df_comparison)
+        else:
+            print("\nComparaison de stratégies")
+            print("------------------------------------------")
+            print(df_comparison.to_string(index=False))
+
+        return df_comparison
+
     def plot_cumulative_returns(self, streamlit_display=False):
         """
         Trace les rendements cumulés au fil du temps en utilisant la bibliothèque de visualisation sélectionnée.
