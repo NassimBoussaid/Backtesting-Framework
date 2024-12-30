@@ -5,18 +5,18 @@
 ##################################################################################
 import streamlit as st
 import pandas as pd
-from Backtester import Backtester
-from RSI import RSI
-from BollingerBands import BollingerBands
-from MeanReversion import MeanReversion
-from MovingAverage import MovingAverage
-from Quality import Quality
-from Value import Value
-from Size import Size
-from BuyAndHold import BuyAndHold
-from MinVariance import MinVariance
-from Volatility_Trend import VolatilityTrendStrategy
-from Keltner_Channel_Strategy import KeltnerChannelStrategy
+from backtesting_framework.Core.Backtester import Backtester
+from backtesting_framework.Strategies.RSI import RSI
+from backtesting_framework.Strategies.BollingerBands import BollingerBands
+from backtesting_framework.Strategies.MeanReversion import MeanReversion
+from backtesting_framework.Strategies.MovingAverage import MovingAverage
+from backtesting_framework.Strategies.Quality import Quality
+from backtesting_framework.Strategies.Value import Value
+from backtesting_framework.Strategies.Size import Size
+from backtesting_framework.Strategies.BuyAndHold import BuyAndHold
+from backtesting_framework.Strategies.MinVariance import MinVariance
+from backtesting_framework.Strategies.Volatility_Trend import VolatilityTrendStrategy
+from backtesting_framework.Strategies.Keltner_Channel_Strategy import KeltnerChannelStrategy
 
 
 @st.cache_data

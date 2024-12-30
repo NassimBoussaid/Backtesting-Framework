@@ -43,8 +43,7 @@ class Result:
         if plot_library.lower() not in ['matplotlib', 'seaborn', 'plotly']:
             raise ValueError("plot_library doit être l'une des suivantes : 'matplotlib', 'seaborn', 'plotly'.")
 
-        daily_returns = portfolio_returns.dropna()
-
+        daily_returns = pd.to_numeric(portfolio_returns, errors='coerce').dropna()
         self.portfolio_returns = daily_returns.copy()
         self.portfolio_returns.name = 'Rendement du Portefeuille'
         self.cumulative_returns = cumulative_returns
