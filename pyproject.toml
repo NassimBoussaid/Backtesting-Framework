@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "Backtesting-Framework"
-version = "0.1.0"
+version = "0.1.1"
 description = "A comprehensive backtesting framework designed to evaluate and compare various investment strategies using historical data. This framework enables users to implement, test, and analyze trading strategies by providing detailed performance metrics and customizable visualizations. It supports data input in CSV or Parquet formats and offers multiple visualization backends, including matplotlib, seaborn, and plotly."
 authors = ["BOUSSAID Nassim", "COUTURAUD Nicolas", "MOUROUGAYA Karthy", "SOULIER Hugo"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11.1"
+python = ">=3.9,<3.9.7 || >3.9.7"
 pandas = "^2.2.3"
 numpy = "^2.0.2"
 matplotlib = "^3.9.4"
@@ -17,6 +17,7 @@ scipy = "^1.13.1"
 workalendar = "^17.0.0"
 streamlit = "^1.41.1"
 ipykernel = "^6.29.5"
+statsmodels = "^0.14.4"
 
 
 [tool.poetry.group.dev.dependencies]
