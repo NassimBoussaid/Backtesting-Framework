@@ -61,7 +61,7 @@ class Backtester:
 
         # Initialisation de la matrice de poids
         self.weight_matrix = None
-        self.plot_library = plot_librairy
+        self.plot_library = plot_library
 
     def load_market_caps(self):
         """
