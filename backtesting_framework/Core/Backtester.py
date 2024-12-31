@@ -190,6 +190,7 @@ class Backtester:
         :return: DataFrame Pandas représentant les pondérations du portefeuille (entre -1 et +1, ou autre).
         :raises ValueError: Si le schéma de pondération n'est pas reconnu.
         """
+        pd.set_option('future.no_silent_downcasting', True)
         if self.weight_scheme == 'EqualWeight':
             # Comptage du nombre d'actifs en position pour chaque date
             selected_counts = composition_matrix.abs().sum(axis=1).replace(0, pd.NA)

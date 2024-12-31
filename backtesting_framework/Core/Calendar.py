@@ -3,7 +3,6 @@ import pandas as pd
 from typing import List
 from workalendar.usa import UnitedStates
 
-
 class Calendar:
     """
     A Calendar class to manage all trading dates and rebalancing dates based on specified frequencies,
