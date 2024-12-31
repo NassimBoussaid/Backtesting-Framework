@@ -21,7 +21,7 @@ class Backtester:
             slippage=0.0,
             risk_free_rate=0.0,
             rebalancing_frequency='monthly',
-            plot_librairy="matplotlib"
+            plot_library="matplotlib"
     ):
         """
         Initialise l'objet Backtester.
@@ -35,7 +35,7 @@ class Backtester:
         :param slippage: Montant des coûts de slippage (exécution différente de l'ordre) par rebalancement (par défaut : 0.0).
         :param risk_free_rate: Taux sans risque du marché (annualisé, par défaut : 0.0).
         :param rebalancing_frequency: Fréquence de rebalancement ('monthly', 'weekly', etc.).
-        :param plot_librairy: Bibliothèque d'affichage à utiliser (par défaut : "matplotlib").
+        :param plot_library: Bibliothèque d'affichage à utiliser (par défaut : "matplotlib").
         """
         print("Initialisation du Backtester...")
         self.data = load_data(data_source)
@@ -68,7 +68,7 @@ class Backtester:
 
         # Initialisation de la matrice de poids
         self.weight_matrix = None
-        self.plot_library = plot_librairy
+        self.plot_library = plot_library
 
     def load_market_caps(self):
         """

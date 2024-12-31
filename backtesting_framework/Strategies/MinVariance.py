@@ -68,7 +68,7 @@ class MinVariance(Strategy):
             method="SLSQP",
             bounds=bounds,
             constraints=constraints,
-            options={'ftol': 1e-7, 'maxiter': 100, 'disp': True}  # Tolérance plus stricte et affichage des détails
+            options={'ftol': 1e-9, 'maxiter': 100, 'disp': True}  # Tolérance plus stricte et affichage des détails
         )
 
         if not result.success:

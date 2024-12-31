@@ -1,7 +1,5 @@
-#################################### WARNING ###################################
-# pour lancer l'interface faut entrer la commande suivante directement dans la console: streamlit run app.py
-#si streamlit pas installer : pip install streamlit
-
+#################################### WARNING #####################################
+# Pour lancer l'interface entrer la commande suivante en console : poetry run streamlit run backtesting_framework/Core/app.py
 ##################################################################################
 import streamlit as st
 import pandas as pd
