@@ -94,4 +94,4 @@ class Quality(Strategy):
         elif rank_value <= self.assets_picked_short:
             return -1.0  # Position short
         else:
-            return 0.0  # Position neutral
+            return 0.0  # Position neutre

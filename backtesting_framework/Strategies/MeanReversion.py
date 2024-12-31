@@ -3,16 +3,16 @@ import pandas as pd
 
 
 class MeanReversion(Strategy):
+    """
+    Stratégie de Mean Reversion basée sur le z-score :
+    Identification des anomalies de prix par rapport à la moyenne.
+    """
     def __init__(self, window: int, zscore_threshold: int):
         """
-        Stratégie de Mean Reversion basée sur le z-score.
+        Initialisation de la stratégie Mean Reversion.
 
-        Paramètres:
-        -----------
-        window : int
-            Nombre de périodes pour la moyenne glissante et l'écart-type.
-        zscore_threshold : float
-            Seuil du z-score pour prendre une position. Exemple: 1.0, 1.5, 2.0
+        :param window: Nombre de périodes pour le calcul de la moyenne et de l'écart-type.
+        :param zscore_threshold: Seuil du z-score pour prendre une position.
         """
         super().__init__(multi_asset=False)
         self.window = window
@@ -20,53 +20,43 @@ class MeanReversion(Strategy):
 
     def get_position(self, historical_data: pd.Series, current_position: float) -> float:
         """
-        Détermine la position à prendre en fonction du z-score.
+        Détermination de la position à prendre en fonction du z-score.
 
-        Paramètres:
-        -----------
-        historical_data : pd.Series
-            Données de prix historiques (y compris la valeur actuelle).
-        current_position : float
-            Position actuelle sur l'actif (1 = long, -1 = short, 0 = flat).
-
-        Retour:
-        -------
-        float
-            Nouvelle position (-1, 0, ou 1).
+        :param historical_data: pd.Series contenant les données de prix historiques.
+        :param current_position: Position actuelle sur l'actif (1 = long, -1 = short, 0 = neutre).
+        :return: Nouvelle position (-1 = short, 1 = long, 0 = neutre).
         """
-        # S'il n'y a pas assez de données, on conserve la position actuelle
+        # Vérification du nombre suffisant de données pour les calculs
         if len(historical_data) < self.window:
             return current_position
 
-        # On prend les dernières 'window' valeurs pour calculer la moyenne et l'écart-type
+        # Sélection des dernières valeurs pour les calculs
         recent_data = historical_data.iloc[-self.window:]
+
+        # Calcul de la moyenne et de l'écart-type
         mean = recent_data.mean()
         std = recent_data.std()
 
-        # Prix actuel (dernière valeur du jeu de données)
+        # Extraction du prix actuel
         last_price = historical_data.iloc[-1]
 
-        # Calcul du z-score
-        # z-score = (valeur_actuelle - moyenne) / écart_type
+        # Vérification de l'écart-type pour éviter les divisions par zéro
         if std == 0:
-            # Si l'écart-type est nul, on ne peut pas calculer le z-score
             return current_position
 
+        # Calcul du z-score
         zscore = (last_price - mean) / std
 
-        # Si le z-score est plus grand que le seuil => trop cher => short
+        # Définition de la position en fonction du z-score
         if zscore > self.zscore_threshold:
-            return -1
-        # Si le z-score est plus petit que -seuil => trop bas => long
+            return -1  # Prix trop élevé, position courte
         elif zscore < -self.zscore_threshold:
-            return 1
+            return 1  # Prix trop bas, position longue
         else:
-            # Pas d'anomalie de prix => pas de position
-            return 0
+            return 0  # Pas de position si le prix est dans une plage normale
 
     def fit(self, data):
         """
-        Méthode d'entraînement optionnelle.
-        Pour une stratégie de mean reversion simple, il n'y a rien à entraîner.
+        Méthode optionnelle pour l'ajustement. Non utilisée dans cette stratégie.
         """
         pass

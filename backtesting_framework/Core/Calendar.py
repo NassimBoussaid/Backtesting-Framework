@@ -5,15 +5,9 @@ from workalendar.usa import UnitedStates
 
 class Calendar:
     """
-    A Calendar class to manage all trading dates and rebalancing dates based on specified frequencies,
-    accounting for U.S. federal holidays.
-
-    Attributes:
-        frequency (str): Frequency of rebalancing ('monthly', 'quarterly', 'yearly', etc.).
-        start_date (datetime): The start date for generating dates.
-        end_date (datetime): The end date for generating dates.
-        all_dates (List[datetime]): A list of all trading dates within the start and end dates.
-        rebalancing_dates (List[datetime]): A list of generated rebalancing dates based on frequency.
+    Classe de gestion du calendrier de trading :
+    Gestion des jours de trading et des dates de rebalancement en fonction des fréquences spécifiées,
+    en tenant compte des jours fériés fédéraux aux États-Unis.
     """
 
     FREQUENCY_MAPPING = {
@@ -28,16 +22,12 @@ class Calendar:
 
     def __init__(self, frequency: str, start_date: str, end_date: str):
         """
-        Initializes the Calendar object with a specified frequency and date range,
-        accounting for U.S. federal holidays.
+        Initialisation de la classe Calendar.
 
-        Args:
-            frequency (str): The frequency of rebalancing ('monthly', 'quarterly', etc.).
-            start_date (str): The start date in 'YYYY-MM-DD' format.
-            end_date (str): The end date in 'YYYY-MM-DD' format.
-
-        Raises:
-            ValueError: If the frequency is not supported or date formats are incorrect.
+        :param frequency: Fréquence des rebalancements ('daily', 'monthly', 'quarterly', etc.).
+        :param start_date: Date de début au format 'YYYY-MM-DD'.
+        :param end_date: Date de fin au format 'YYYY-MM-DD'.
+        :raises ValueError: Fréquence non supportée ou format de date incorrect.
         """
         frequency = frequency.lower()
         if frequency not in self.FREQUENCY_MAPPING:
@@ -62,27 +52,21 @@ class Calendar:
 
     def _is_trading_day(self, date: datetime) -> bool:
         """
-        Checks if a given date is a trading day (i.e., not a weekend or U.S. holiday).
+        Identification d'un jour de trading (pas un week-end ou un jour férié fédéral).
 
-        Args:
-            date (datetime): The date to check.
-
-        Returns:
-            bool: True if the date is a trading day, False otherwise.
+        :param date: Date à vérifier.
+        :return: True si c'est un jour de trading, False sinon.
         """
         return date.weekday() < 5 and date.date() not in self.holidays
 
     @classmethod
     def get_holidays_in_range(cls, start_date: datetime, end_date: datetime) -> List[datetime.date]:
         """
-        Retrieves all federal holidays within a specified date range.
+        Extraction des jours fériés fédéraux dans une plage de dates.
 
-        Args:
-            start_date (datetime): The start date.
-            end_date (datetime): The end date.
-
-        Returns:
-            List[datetime.date]: A list of holiday dates.
+        :param start_date: Date de début.
+        :param end_date: Date de fin.
+        :return: Liste des jours fériés.
         """
         holidays = []
         start_year = start_date.year
@@ -98,11 +82,9 @@ class Calendar:
 
     def _generate_all_trading_dates(self) -> List[datetime]:
         """
-        Generates a list of all trading dates within the start and end dates,
-        excluding weekends and U.S. federal holidays.
+        Génération des jours de trading dans la plage définie, hors week-ends et jours fériés.
 
-        Returns:
-            List[datetime]: A list of all trading dates.
+        :return: Liste des jours de trading.
         """
         all_business_days = pd.bdate_range(start=self.start_date, end=self.end_date, freq='C',
                                            holidays=self.holidays).tolist()
@@ -110,13 +92,10 @@ class Calendar:
 
     def _adjust_to_next_trading_day(self, date: datetime) -> datetime:
         """
-        Adjusts a date to the next available trading day if it falls on a non-trading day.
+        Ajustement d'une date au prochain jour de trading disponible si nécessaire.
 
-        Args:
-            date (datetime): The date to adjust.
-
-        Returns:
-            datetime: The adjusted trading day.
+        :param date: Date à ajuster.
+        :return: Jour de trading ajusté.
         """
         adjusted_date = date
         while not self._is_trading_day(adjusted_date):
@@ -127,11 +106,9 @@ class Calendar:
 
     def _generate_rebalancing_dates(self) -> set[datetime]:
         """
-        Generates a list of rebalancing dates based on the frequency and date range,
-        adjusted to ensure they fall on trading days.
+        Génération des dates de rebalancement en fonction de la fréquence et de la plage de dates.
 
-        Returns:
-            List[datetime]: A list of rebalancing dates.
+        :return: Ensemble des dates de rebalancement.
         """
         freq_alias = self.FREQUENCY_MAPPING[self.frequency]
         scheduled_dates = pd.date_range(start=self.start_date, end=self.end_date, freq=freq_alias)
@@ -143,11 +120,10 @@ class Calendar:
 
     def is_rebalancing_date(self, date: str) -> bool:
         """
-        Args:
-            date (str): The date to check in 'YYYY-MM-DD' format.
+        Vérification si une date est une date de rebalancement.
 
-        Returns:
-            bool: True if the date is a rebalancing date, False otherwise.
+        :param date: Date au format 'YYYY-MM-DD'.
+        :return: True si c'est une date de rebalancement, False sinon.
         """
         try:
             check_date = pd.to_datetime(date).to_pydatetime()
@@ -158,10 +134,9 @@ class Calendar:
 
     def add_rebalancing_date(self, date: str):
         """
-        Adds a custom rebalancing date to the set, adjusted to the next trading day if necessary.
+        Ajout d'une date de rebalancement personnalisée, ajustée au jour de trading suivant si nécessaire.
 
-        Args:
-            date (str): The date to add in 'YYYY-MM-DD' format.
+        :param date: Date à ajouter au format 'YYYY-MM-DD'.
         """
         try:
             new_date = pd.to_datetime(date).to_pydatetime()
@@ -181,10 +156,9 @@ class Calendar:
 
     def remove_rebalancing_date(self, date: str):
         """
-        Removes a rebalancing date from the list.
+        Suppression d'une date de rebalancement.
 
-        Args:
-            date (str): The date to remove in 'YYYY-MM-DD' format.
+        :param date: Date à supprimer au format 'YYYY-MM-DD'.
         """
         try:
             remove_date = pd.to_datetime(date).to_pydatetime()
@@ -197,6 +171,9 @@ class Calendar:
             raise ValueError("The date is not in the list of rebalancing dates.")
 
     def __repr__(self):
+        """
+        Représentation textuelle de l'objet Calendar.
+        """
         return (f"Calendar(frequency='{self.frequency}', "
                 f"start_date='{self.start_date.date()}', "
                 f"end_date='{self.end_date.date()}', "

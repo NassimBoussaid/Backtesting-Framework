@@ -50,7 +50,7 @@ class Size(Strategy):
 
     def get_position(self, historical_data: pd.Series, current_position: float) -> float:
         """
-        Détermine la position à prendre (long, short ou neutral) pour un actif donné à une date donnée.
+        Détermine la position à prendre (long, short ou neutre) pour un actif donné à une date donnée.
 
         :param historical_data: pd.Series contenant les prix historiques pour un actif donné.
         :param current_position: Position actuelle sur l'actif (1 pour long, -1 pour short, 0 pour neutral).
@@ -81,4 +81,4 @@ class Size(Strategy):
         elif rank_value <= self.assets_picked_short:
             return -1.0  # Position short
         else:
-            return 0.0  # Position neutral
+            return 0.0  # Position neutre

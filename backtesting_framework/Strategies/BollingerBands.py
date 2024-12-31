@@ -3,16 +3,17 @@ import pandas as pd
 import numpy as np
 
 class BollingerBands(Strategy):
+    """
+    Stratégie basée sur les Bandes de Bollinger :
+    Identification des opportunités d'achat ou de vente lorsque les prix
+    atteignent les bandes inférieure ou supérieure respectivement.
+    """
     def __init__(self, window: int, num_std_dev: float):
         """
-        Une stratégie basée sur les Bandes de Bollinger.
+        Initialisation de la stratégie Bollinger Bands.
 
-        Paramètres :
-        -----------
-        window : int
-            Période de calcul pour la moyenne mobile et l'écart type.
-        num_std_dev : float
-            Nombre d'écarts types pour les bandes supérieure et inférieure.
+        :param window: Période de calcul pour la moyenne mobile et l'écart type.
+        :param num_std_dev: Nombre d'écarts types pour les bandes supérieure et inférieure.
         """
         super().__init__(multi_asset=False)
         self.window = window
@@ -20,35 +21,31 @@ class BollingerBands(Strategy):
 
     def get_position(self, historical_data: pd.DataFrame, current_position: float) -> float:
         """
-        Détermine la position basée sur les Bandes de Bollinger.
+        Détermination de la position en fonction des Bandes de Bollinger.
 
-        Paramètres :
-        -----------
-        historical_data : pd.DataFrame
-            Données historiques des prix, incluant le jour actuel.
-        current_position : float
-            Position actuelle (par exemple, 1 pour achat, -1 pour vente, 0 pour neutre).
-
-        Retourne :
-        --------
-        float
-            Nouvelle position (-1, 0 ou 1) basée sur le signal des Bandes de Bollinger.
+        :param historical_data: pd.DataFrame contenant les prix historiques, y compris la journée actuelle.
+        :param current_position: Position actuelle (1 = achat, -1 = vente, 0 = neutre).
+        :return: Nouvelle position basée sur le signal des Bandes de Bollinger (-1, 0 ou 1).
         """
+
+        # Vérification de la disponibilité de suffisamment de données
         if len(historical_data) < self.window:
-            # Pas assez de données pour calculer les Bandes de Bollinger
             return current_position
 
+        # Extraction des prix
         prices = historical_data.values
 
         # Calcul des Bandes de Bollinger
         moving_average, upper_band, lower_band = self._calculate_bollinger_bands(prices)
 
+        # Prix actuel
         current_price = prices[-1]
 
+        # Détermination de la position
         if current_price < lower_band:
-            return 1  # Position d'achat
+            return 1  # Position longue
         elif current_price > upper_band:
-            return -1  # Position de vente
+            return -1  # Position courte
         else:
             return 0  # Position neutre
 
@@ -56,19 +53,16 @@ class BollingerBands(Strategy):
         """
         Calcul des Bandes de Bollinger.
 
-        Paramètres :
-        -----------
-        prices : array-like
-            Tableau des prix historiques.
-
-        Retourne :
-        --------
-        tuple
-            Moyenne mobile, bande supérieure et bande inférieure.
+        :param prices: np.ndarray contenant les prix historiques.
+        :return: Tuple contenant la moyenne mobile, la bande supérieure et la bande inférieure.
         """
+
+        # Calcul de la moyenne mobile
         moving_average = np.mean(prices[-self.window:])
+        # Calcul de l'écart type
         standard_deviation = np.std(prices[-self.window:])
 
+        # Calcul des bandes
         upper_band = moving_average + self.num_std_dev * standard_deviation
         lower_band = moving_average - self.num_std_dev * standard_deviation
 

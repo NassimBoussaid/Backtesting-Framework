@@ -2,20 +2,18 @@ from backtesting_framework.Core.Strategy import Strategy
 import pandas as pd
 
 class MovingAverage(Strategy):
+    """
+    Stratégie de moyenne mobile :
+    Prend une position longue si la moyenne mobile courte (MA courte) dépasse
+    la moyenne mobile longue (MA longue), sinon une position courte.
+    """
     def __init__(self, short_window: int, long_window: int, exponential_mode=False):
         """
-        A moving average strategy that goes long if short MA > long MA, else short.
+        Initialisation de la stratégie de moyenne mobile.
 
-        Parameters:
-        -----------
-        short_window : int
-            Number of periods for the short moving average.
-        long_window : int
-            Number of periods for the long moving average.
-        exponential_mode : bool
-            If True, compute exponential moving averages (EMA) instead of simple MAs.
-        column : str
-            The column name of the asset prices in the historical DataFrame.
+        :param short_window: Nombre de périodes pour la moyenne mobile courte.
+        :param long_window: Nombre de périodes pour la moyenne mobile longue.
+        :param exponential_mode: Booléen, si True, calcule les moyennes mobiles exponentielles (EMA) au lieu des moyennes simples (SMA).
         """
         super().__init__(multi_asset=False)
         self.short_window = short_window
@@ -24,86 +22,59 @@ class MovingAverage(Strategy):
 
     def get_position(self, historical_data: pd.DataFrame, current_position: float) -> float:
         """
-        Determine the position based on moving averages.
+        Détermine la position à prendre (longue, courte ou neutre) en fonction des moyennes mobiles.
 
-        Parameters:
-        -----------
-        historical_data : pd.DataFrame
-            Historical price data including the current day.
-        current_position : float
-            Current position (e.g., 1 for long, -1 for short, 0 for flat).
-
-        Returns:
-        --------
-        float
-            New position (-1, 0, or 1) based on the strategy's logic.
+        :param historical_data: pd.DataFrame contenant les données de prix historiques, y compris la journée actuelle.
+        :param current_position: Position actuelle (1 pour long, -1 pour short, 0 pour neutre).
+        :return: La nouvelle position à prendre (1 = long, -1 = short, 0 = neutre).
         """
         if len(historical_data) < max(self.short_window, self.long_window):
-            # Not enough data to compute strategy signals
+            # Pas assez de données pour calculer les signaux de la stratégie
             return current_position
 
         prices = historical_data.values
 
         if self.exponential_mode:
-            # Calculate EMA for short window
+            # Calcul des EMA pour les fenêtres courte et longue
             ma_short = self._calculate_ema(prices, self.short_window)
-            # Calculate EMA for long window
             ma_long = self._calculate_ema(prices, self.long_window)
         else:
-            # Calculate simple MA for short window
+            # Calcul des SMA pour les fenêtres courte et longue
             ma_short = self._calculate_sma(prices, self.short_window)
-            # Calculate simple MA for long window
             ma_long = self._calculate_sma(prices, self.long_window)
 
         if ma_short > ma_long:
-            return 1
+            return 1  # Position longue
         elif ma_short < ma_long:
-            return -1
+            return -1  # Position courte
         else:
-            return current_position
+            return current_position  # Maintenir la position actuelle
 
     def _calculate_sma(self, prices, window: int) -> float:
         """
-        Calculate simple moving average manually.
+        Calcule manuellement la moyenne mobile simple (SMA).
 
-        Parameters:
-        -----------
-        prices : array-like
-            Array of prices.
-        window : int
-            Number of periods over which to compute the SMA.
-
-        Returns:
-        --------
-        float
-            The simple moving average over the last `window` periods.
+        :param prices: Tableau de prix.
+        :param window: Nombre de périodes pour calculer la SMA.
+        :return: Valeur de la SMA sur les dernières `window` périodes.
         """
         relevant_prices = prices[-window:]
         return relevant_prices.sum() / window
 
     def _calculate_ema(self, prices, window: int) -> float:
         """
-        Calculate exponential moving average (EMA) manually.
+        Calcule manuellement la moyenne mobile exponentielle (EMA).
 
-        Parameters:
-        -----------
-        prices : array-like
-            Array of prices.
-        window : int
-            Number of periods for the EMA.
-
-        Returns:
-        --------
-        float
-            The exponential moving average over the last `window` periods.
+        :param prices: Tableau de prix.
+        :param window: Nombre de périodes pour calculer l'EMA.
+        :return: Valeur de l'EMA sur les dernières `window` périodes.
         """
         alpha = 2 / (window + 1)
-        # Apply EMA formula incrementally from the point where we have full window:
+        # On utilise la première valeur comme point de départ de l'EMA
         relevant_prices = prices[-window:]
-        # Start with the first price as the EMA seed
         ema = relevant_prices[0]
 
-        # For each subsequent price, update the EMA:
+        # Calcul incrémental de l'EMA pour les prix suivants
         for price in relevant_prices[1:]:
             ema = alpha * price + (1 - alpha) * ema
 
@@ -111,6 +82,6 @@ class MovingAverage(Strategy):
 
     def fit(self, data):
         """
-        Optional fitting method. Not used for this strategy.
+        Méthode optionnelle d'ajustement (fit). Non utilisée pour cette stratégie.
         """
         pass

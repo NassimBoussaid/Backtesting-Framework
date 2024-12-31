@@ -1,4 +1,5 @@
 import pandas as pd
+from tqdm import tqdm
 from backtesting_framework.Core.Strategy import Strategy
 from backtesting_framework.Core.Result import Result
 from backtesting_framework.Core.Calendar import Calendar
@@ -36,7 +37,9 @@ class Backtester:
         :param rebalancing_frequency: Fréquence de rebalancement ('monthly', 'weekly', etc.).
         :param plot_librairy: Bibliothèque d'affichage à utiliser (par défaut : "matplotlib").
         """
+        print("Initialisation du Backtester...")
         self.data = load_data(data_source)
+        print("Données de marché chargées.")
         self.weight_scheme = weight_scheme
         self.market_cap_source = market_cap_source
         self.special_start = special_start
@@ -46,8 +49,10 @@ class Backtester:
 
         # Charger et aligner les données de capitalisation boursière si nécessaire
         if self.weight_scheme == 'MarketCapWeight':
+            print("Chargement des données de capitalisation boursière...")
             self.market_caps = None
             self.load_market_caps()
+            print("Données de capitalisation boursière chargées.")
 
         # Détermination des bornes pour le calendrier
         self.start_date = self.data.index[0].strftime('%Y-%m-%d')
@@ -96,11 +101,14 @@ class Backtester:
         :param target_vol: Volatilité cible (annualisée). Optionnel si is_VT=True.
         :return: Instance de la classe Result contenant les résultats du backtest.
         """
+        print("Démarrage du backtest...")
         composition_matrix = self.calculate_composition_matrix(strategy)
+        print("Matrice de composition calculée.")
         self.weight_matrix = self.calculate_weight_matrix(composition_matrix)
+        print("Matrice des pondérations calculée.")
         asset_contributions, portfolio_returns, cumulative_asset_returns, cumulative_returns, result_trade = \
             self.calculate_returns(is_VT, target_vol)
-
+        print("Rendements calculés.")
         result = Result(
             portfolio_returns=portfolio_returns,
             cumulative_returns=cumulative_returns,
@@ -108,6 +116,7 @@ class Backtester:
             trade_stats=result_trade,
             plot_library=self.plot_library
         )
+        print("Backtest terminé.")
         return result
 
     def apply_vol_targeting(
@@ -156,7 +165,7 @@ class Backtester:
 
         if strategy.multi_asset:
             current_position = 0
-            for date_index in range(self.special_start, len(trading_dates)):
+            for date_index in tqdm(range(self.special_start, len(trading_dates)), desc="Multi-Asset Composition"):
                 current_date = trading_dates[date_index]
                 current_df = self.data.loc[:current_date]
                 # Mise à jour des positions aux dates de rebalancement
@@ -167,7 +176,7 @@ class Backtester:
 
         else:
             # Initialisation des positions pour chaque actif (mono-actif)
-            for asset in assets:
+            for asset in tqdm(assets, desc="Mono-Asset Composition"):
                 current_position = 0
                 for date_index in range(self.special_start, len(trading_dates)):
                     current_date = trading_dates[date_index]

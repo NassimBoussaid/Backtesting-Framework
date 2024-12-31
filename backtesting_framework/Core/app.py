@@ -16,7 +16,7 @@ from backtesting_framework.Strategies.Size import Size
 from backtesting_framework.Strategies.BuyAndHold import BuyAndHold
 from backtesting_framework.Strategies.MinVariance import MinVariance
 from backtesting_framework.Strategies.Volatility_Trend import VolatilityTrendStrategy
-from backtesting_framework.Strategies.Keltner_Channel_Strategy import KeltnerChannelStrategy
+from backtesting_framework.Strategies.KeltnerChannelStrategy import KeltnerChannelStrategy
 
 
 @st.cache_data

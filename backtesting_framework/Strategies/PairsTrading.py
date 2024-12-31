@@ -10,17 +10,19 @@ from backtesting_framework.Core.Strategy import Strategy
 
 class PairsTradingStrategy(Strategy):
     """
-    Classe de stratégie pour le trading de paires.
+    Stratégie de trading de paires :
+    Identifie des paires d'actifs co-intégrées et génère des signaux de trading
+    basés sur les écarts de prix (spread) entre ces paires.
     """
 
-    def __init__(self,data, z_score_upper=1.0, z_score_lower=-1.0,significant_level=0.05):
+    def __init__(self, data, z_score_upper=1.0, z_score_lower=-1.0, significant_level=0.05):
         """
-        Initialise la stratégie de trading de paires.
+        Initialisation de la stratégie de trading de paires.
 
-        :param asset1: Nom du premier actif.
-        :param asset2: Nom du deuxième actif.
-        :param z_score_entry: Seuil de z-score pour entrer en position.
-        :param z_score_exit: Seuil de z-score pour sortir de position.
+        :param data: Données des actifs et leurs prix respectifs.
+        :param z_score_upper: Seuil supérieur pour le z-score, déclenchant une position courte sur une paire.
+        :param z_score_lower: Seuil inférieur pour le z-score, déclenchant une position longue sur une paire.
+        :param significant_level: Niveau de significativité pour le test de cointégration (p-value).
         """
 
         super().__init__(multi_asset=True)
@@ -32,22 +34,25 @@ class PairsTradingStrategy(Strategy):
 
     def find_cointegrated_pairs(self,data,significance_level=0.05):
         """
-        Trouve les paires d'actifs cointégrées (correlation) dans les données.
-        :param data: nos stocks et leurs prix respectifs
-        :param significance_level: level de la p_value pour le test de cointegration
-        :return: pairs, score_matrix, pvalue_matrix
-        """
+        Identifie les paires d'actifs co-intégrées dans les données.
 
+        :param data: pd.DataFrame contenant les prix des actifs.
+        :param significance_level: Seuil de significativité pour la p-value du test de co-intégration.
+        :return: Liste des paires co-intégrées.
+        """
+        # Suppression des colonnes avec des valeurs manquantes
         data_valid = data.dropna(axis=1)
         data_valid = data_valid.loc[:, data_valid.nunique() > 10]
         warnings.filterwarnings("ignore", category=CollinearityWarning)
+
         keys = data_valid.keys()
         n = len(keys)
         pairs = []
         score_matrix = np.zeros((n, n))
         pvalue_matrix = np.ones((n, n))
         indices = np.triu_indices(n, 1)
-        # Appliquer les tests de cointégration pour chaque paire
+
+        # Application du test de cointégration pour chaque paire d'actifs
         for i, j in zip(*indices):
             S1 = data_valid[keys[i]]
             S2 = data_valid[keys[j]]
@@ -60,42 +65,41 @@ class PairsTradingStrategy(Strategy):
 
     def calculate_z_score(self, series):
         """
-        Calcule le z-score.
+        Calcule le z-score pour une série de données.
 
-        :param series: Serie de prix.
-        :return: Z-score.
+        :param series: pd.Series représentant la série des écarts (spread).
+        :return: Valeur du z-score.
         """
         return (series.iloc[-1] - series.mean()) / series.std()
 
     def get_position(self, historical_data, current_position):
         """
-            Génère les signaux de trading pour une paire d'actifs.
+        Génère les positions de trading pour une paire d'actifs en fonction de l'écart
+        (spread) entre leurs prix et des seuils définis.
 
-            :param current_position: Position actuelle.
-            :param historical_data: pd.DataFrame de prix pour un notre panier d'actifs (index = dates).
-            :return: liste de signaux pour la date de rebalancement donnée.
+        :param historical_data: pd.DataFrame contenant les données de prix historiques.
+        :param current_position: Liste des positions actuelles sur les actifs.
+        :return: Liste des nouvelles positions pour chaque actif.
         """
-
+        # Filtrage des colonnes valides (au moins 2 valeurs non nulles)
         valid_columns = historical_data.columns[historical_data.notna().sum() >= 2]
         historical_data_valid = historical_data[valid_columns]
 
         if historical_data_valid.shape[1] == 0:
-            # Si aucune colonne valide n'est trouvée, retourne une liste de positions nulles pour tous les actifs
+            # Si aucune colonne valide n'est trouvée, retourne une liste de positions nulles
             return [0] * len(historical_data.columns)
 
-        # On trouve les paires cointegrées (corrélées)
-
+        # Initialisation de la position à 0 pour tous les actifs
         nb_assets = len(historical_data_valid.columns)
-
-        # On initialise la position à 0 pour tous les actifs
         position = pd.DataFrame(data=[[0] * nb_assets],columns=historical_data_valid.columns)
 
+        # Itération sur les paires co-intégrées
         for pair in self.pairs:
             asset1, asset2 = pair
             S1 = historical_data_valid[asset1]
             S2 = historical_data_valid[asset2]
 
-            # Calcul du ratio de prix et z-score
+            # Calcul du spread et du z-score
             spread = S1 - S2
             self.z_score = self.calculate_z_score(spread)
 
@@ -108,10 +112,16 @@ class PairsTradingStrategy(Strategy):
                 position[asset1] = 1
                 position[asset2] = -1
             else:
-                # Close positions
+                # Ferme les positions
                 position[asset1] = 0
                 position[asset2] = 0
 
+        # Conversion des positions en liste
         current_position = position.values.tolist()[0]
         return current_position
 
+    def fit(self, data):
+        """
+        Méthode optionnelle d'ajustement (fit). Non utilisée pour cette stratégie.
+        """
+        pass

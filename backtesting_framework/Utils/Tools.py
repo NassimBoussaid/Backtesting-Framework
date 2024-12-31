@@ -2,8 +2,12 @@ import pandas as pd
 
 def load_data(data_source):
     """
-    Charge les données d'un fichier CSV, Parquet, d'un DataFrame
-    ou d'un dictionnaire (dans le cas de la Value strategy).
+    Chargement des données à partir de différentes sources :
+    Support des fichiers CSV, Parquet, DataFrame pandas.
+
+    :param data_source: Source des données (fichier ou structure de données en mémoire).
+    :return: Données chargées sous forme de DataFrame pandas.
+    :raises ValueError: Format de données non supporté.
     """
     if isinstance(data_source, pd.DataFrame):
         return data_source

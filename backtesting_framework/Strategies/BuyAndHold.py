@@ -14,12 +14,6 @@ class BuyAndHold(Strategy):
         super().__init__(multi_asset=False)
         pass
 
-    def fit(self, data):
-        """
-        Préparation des données pour la stratégie Buy and Hold.
-        :param data: DataFrame Pandas contenant les prix des actifs (index = dates, colonnes = tickers).
-        """
-
     def get_position(self, historical_data: pd.Series, current_position: float) -> float:
         """
         Détermine la position à prendre pour un actif donné à la date courante.
@@ -30,3 +24,9 @@ class BuyAndHold(Strategy):
         :return: Position fixe à 1.0 (long) pour Buy and Hold.
         """
         return 1.0
+
+    def fit(self, data):
+        """
+        Méthode optionnelle pour l'ajustement. Non utilisée dans cette stratégie.
+        """
+        pass

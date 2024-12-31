@@ -96,9 +96,6 @@ class RSI(Strategy):
 
     def fit(self, data):
         """
-        Méthode de fit (optionnelle). Peut être laissée vide si la stratégie ne nécessite pas d'entraînement.
+        Méthode optionnelle d'ajustement (fit). Non utilisée pour cette stratégie.
         """
         pass
-
-
-
