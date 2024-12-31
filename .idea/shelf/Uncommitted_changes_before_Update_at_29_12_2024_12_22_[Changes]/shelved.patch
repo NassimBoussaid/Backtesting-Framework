@@ -1,0 +1,24 @@
+Index: Core/Main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from Backtester import Backtester\r\nimport pandas as pd\r\nfrom Strategies.Value import Value\r\nfrom Strategies.MinVariance import MinVariance\r\n\r\n# historical_data = pd.read_excel(\"Data_.xlsx\", index_col=0)\r\n# ahah = Backtester(historical_data, special_start=100)\r\n# moving_average_strategy = MovingAverage(7, 100, exponential_mode=False)\r\n# result = ahah.run(moving_average_strategy, \"daily\")\r\n\"\"\"\r\nprice_data = pd.read_csv(\"Datasets/S&P500_PX_LAST.csv\", index_col=0, parse_dates=True)\r\nbacktester = Backtester(price_data, multi_assets=False, special_start=30, rebalancing_frequency=\"monthly\")\r\n\r\nper_data = pd.read_csv(\"Datasets/S&P500_PER.csv\", index_col=0, parse_dates=True)\r\npbr_data = pd.read_csv(\"Datasets/S&P500_PBR.csv\", index_col=0, parse_dates=True)\r\nmetrics_data = {\"PER\": per_data, \"PBR\": pbr_data}\r\n\r\nstrategy = Value(window=30, assets_picked_long=1000, assets_picked_short=0)\r\nstrategy.fit(metrics_data)\r\nresult = backtester.run(strategy)\r\n\r\nresult.display_statistics()\r\nresult.plot_cumulative_returns()\r\nresult.plot_portfolio_returns()\r\n\"\"\"\r\nprice_data = pd.read_csv(\"Datasets/S&P500_PX_LAST_V2.csv\", index_col=0, parse_dates=True)\r\nbacktester = Backtester(price_data, multi_assets=True, special_start=1, rebalancing_frequency=\"monthly\")\r\n\r\nstrategy = MinVariance(short_sell=False)\r\nresult = backtester.run(strategy)\r\n\r\nresult.display_statistics()\r\nresult.plot_cumulative_returns()\r\nresult.plot_portfolio_returns()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Core/Main.py b/Core/Main.py
+--- a/Core/Main.py	(revision a16466e6da9c5602477cfada6ca6dfb148bef6f3)
++++ b/Core/Main.py	(date 1735398334693)
+@@ -7,7 +7,7 @@
+ # ahah = Backtester(historical_data, special_start=100)
+ # moving_average_strategy = MovingAverage(7, 100, exponential_mode=False)
+ # result = ahah.run(moving_average_strategy, "daily")
+-"""
++
+ price_data = pd.read_csv("Datasets/S&P500_PX_LAST.csv", index_col=0, parse_dates=True)
+ backtester = Backtester(price_data, multi_assets=False, special_start=30, rebalancing_frequency="monthly")
+ 
+@@ -32,3 +32,4 @@
+ result.display_statistics()
+ result.plot_cumulative_returns()
+ result.plot_portfolio_returns()
++"""

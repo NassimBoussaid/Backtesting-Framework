@@ -19,7 +19,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9' # Compatible avec les versions spécifiées dans le pyproject.toml
+        python-version: [ 3.9, 3.10, 3.11 ]
+        numpy-version: [ 1.21, 1.24, 2.0 ]
 
     - name: Install Poetry
       run: |
