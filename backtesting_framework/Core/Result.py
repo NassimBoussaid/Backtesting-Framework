@@ -113,7 +113,7 @@ class Result:
         excess_returns = self.portfolio_returns - daily_rf
         annual_excess_return = excess_returns.mean() * self.PERIODS_PER_YEAR
         annual_excess_vol = excess_returns.std(ddof=1) * np.sqrt(self.PERIODS_PER_YEAR)
-        return annual_excess_return / annual_excess_vol if annual_excess_vol != 0 else np.nan
+        return round(annual_excess_return / annual_excess_vol, 3) if annual_excess_vol != 0 else np.nan
 
     def calculate_max_drawdown(self):
         """
@@ -159,7 +159,7 @@ class Result:
         annual_downside_std = negative_returns.std(ddof=1) * np.sqrt(self.PERIODS_PER_YEAR)
         if annual_downside_std == 0:
             return np.nan
-        return (self.annualized_return - self.risk_free_rate) / annual_downside_std
+        return round((self.annualized_return - self.risk_free_rate) / annual_downside_std, 3)
 
     def calculate_calmar_ratio(self):
         """
@@ -169,7 +169,7 @@ class Result:
             Calmar Ratio.
         """
         mdd = abs(self.max_drawdown)
-        return np.nan if mdd == 0 else (self.annualized_return / mdd)
+        return np.nan if mdd == 0 else round((self.annualized_return / mdd), 3)
 
     def calculate_var(self, alpha=0.05):
         """
@@ -297,6 +297,17 @@ class Result:
             })
 
         df_comparison = pd.DataFrame(data)
+        columns = [
+            'Total Return',
+            'Annualized Return',
+            'Volatility',
+            'Max Drawdown',
+            'Win Rate',
+            'VaR(5%)',
+            'ES(5%)'
+        ]
+        for col in columns:
+            df_comparison[col] = df_comparison[col].apply(lambda x: f"{x * 100:.2f}%")
 
         # Affichage du tableau (Streamlit ou console)
         if streamlit_display:
@@ -493,11 +504,14 @@ class Result:
                 sns.set(style="darkgrid")
                 sns.histplot(self.portfolio_returns, bins=bins, kde=True, color='blue', alpha=0.6)
             else:
-                plt.hist(self.portfolio_returns, bins=bins, alpha=0.6, color='blue', density=True, label='Rendements Quotidiens')
+                plt.hist(self.portfolio_returns, bins=bins, alpha=0.6, color='blue', density=True,
+                         label='Rendements Quotidiens')
                 sns.kdeplot(self.portfolio_returns, color='blue', fill=False)
 
-            plt.axvline(var_value, color='red', linestyle='--', label=f"VaR({int((1 - alpha) * 100)}%) = {var_value:.2%}")
-            plt.axvline(es_value, color='orange', linestyle='--', label=f"ES({int((1 - alpha) * 100)}%) = {es_value:.2%}")
+            plt.axvline(var_value, color='red', linestyle='--',
+                        label=f"VaR({int((1 - alpha) * 100)}%) = {var_value:.2%}")
+            plt.axvline(es_value, color='orange', linestyle='--',
+                        label=f"ES({int((1 - alpha) * 100)}%) = {es_value:.2%}")
 
             plt.title("Distribution des Rendements Quotidiens avec VaR & ES")
             plt.xlabel("Rendement Quotidien")
