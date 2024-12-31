@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]  # Valid versions
+        python-version: ["3.9", "3.10", "3.11"]
         numpy-version: ["1.21", "1.24", "2.0"]
 
     steps:
@@ -32,6 +32,13 @@ jobs:
     - name: Configure Poetry in PATH
       run: |
         echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Debug Python Environment
+      run: |
+        python --version
+        pip --version
+        poetry --version
+        poetry show
 
     - name: Install dependencies
       run: |
