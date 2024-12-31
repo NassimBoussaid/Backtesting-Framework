@@ -206,7 +206,6 @@ if compare_strategies:
             "MinVariance",
             "Volatility Trend",
             "Keltner Channel",
-            "Pairs Trading"
         ]
     )
 
