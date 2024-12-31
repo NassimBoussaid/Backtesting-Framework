@@ -19,12 +19,13 @@ from backtesting_framework.Strategies.KeltnerChannelStrategy import KeltnerChann
 
 @st.cache_data
 def load_data(file_path):
-    if file_path.name.endswith('.xlsx'):
-        data = pd.read_excel(file_path, index_col=0)
-    elif file_path.name.endswith('.csv'):
+    # Vérifier le format du fichier
+    if file_path.name.endswith('.csv'):
         data = pd.read_csv(file_path, index_col=0)
+    elif file_path.name.endswith('.parquet'):
+        data = pd.read_parquet(file_path)
     else:
-        raise ValueError("Unsupported file format. Please upload an Excel or CSV file.")
+        raise ValueError("Unsupported file format. Please upload a CSV or Parquet file.")
 
     # Convertir l'index en DatetimeIndex
     try:
@@ -40,7 +41,7 @@ st.title("Backtesting Interface")
 # Charger plusieurs fichiers
 st.subheader("Upload Required Data Files")
 uploaded_files = st.file_uploader(
-    "Upload Files (Excel or CSV format)", type=["xlsx", "csv"], accept_multiple_files=True
+    "Upload Files (Excel or Parquet format)", type=["csv", "parquet"], accept_multiple_files=True
 )
 data_files = {}
 if uploaded_files:
@@ -55,7 +56,7 @@ slippage_1 = st.sidebar.number_input("Slippage (Strategy 1, %):", min_value=0.0,
 risk_free_rate_1 = st.sidebar.number_input("Risk Free Rate (Strategy 1, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
 rebalancing_frequency_1 = st.sidebar.selectbox("Rebalancing Frequency (Strategy 1):", ["daily", "weekly", "monthly"], index=2)
 weight_scheme_1 = st.sidebar.selectbox("Weighting Scheme (Strategy 1):", ["EqualWeight", "MarketCapWeight"], index=0)
-special_start_1 = st.sidebar.number_input("Special Start (Strategy 1, Index):", min_value=1, max_value=1000, value=100)
+special_start_1 = st.sidebar.number_input("Special Start (Strategy 1, Index):", min_value=1, max_value=1000, value=1)
 plot_library_1 = st.sidebar.selectbox("Visualization Library (Strategy 1):", ["matplotlib", "seaborn", "plotly"], index=0)
 apply_vol_target_1 = st.sidebar.checkbox("Apply Vol Target (Strategy 1)", value=False)
 target_vol_1 = st.sidebar.number_input("Target Volatility (Strategy 1, %):", min_value=0.0, max_value=100.0, value=10.0, step=0.1) if apply_vol_target_1 else None
@@ -96,82 +97,76 @@ if strategy_name_1:
         historical_data_1 = data_files[historical_data_file_1]
 
     # Paramètres de la stratégie 1
-    if strategy_name_1 == "RSI":
-        rsi_period_1 = st.slider("RSI Period (Strategy 1)", 5, 50, 14)
-        rsi_overbought_1 = st.slider("Overbought Threshold (Strategy 1)", 50, 100, 70)
-        rsi_oversold_1 = st.slider("Oversold Threshold (Strategy 1)", 0, 50, 30)
-        strategy_1 = RSI(period=rsi_period_1, overbought_threshold=rsi_overbought_1, oversold_threshold=rsi_oversold_1)
+# Paramètres de la stratégie 1
+if strategy_name_1 == "RSI":
+    rsi_period_1 = st.number_input("RSI Period (Strategy 1)", min_value=5, value=14, step=1)
+    rsi_overbought_1 = st.number_input("Overbought Threshold (Strategy 1)", min_value=50, value=70, step=1)
+    rsi_oversold_1 = st.number_input("Oversold Threshold (Strategy 1)", min_value=0, value=30, step=1)
+    strategy_1 = RSI(period=rsi_period_1, overbought_threshold=rsi_overbought_1, oversold_threshold=rsi_oversold_1)
 
-    elif strategy_name_1 == "Bollinger Bands":
-        bb_window_1 = st.slider("Window Period (Strategy 1)", 5, 50, 20)
-        bb_std_dev_1 = st.slider("Number of Standard Deviations (Strategy 1)", 1.0, 3.0, 2.0)
-        strategy_1 = BollingerBands(window=bb_window_1, num_std_dev=bb_std_dev_1)
+elif strategy_name_1 == "Bollinger Bands":
+    bb_window_1 = st.number_input("Window Period (Strategy 1)", min_value=5, value=20, step=1)
+    bb_std_dev_1 = st.number_input("Number of Standard Deviations (Strategy 1)", min_value=1.0, value=2.0, step=0.1)
+    strategy_1 = BollingerBands(window=bb_window_1, num_std_dev=bb_std_dev_1)
 
-    elif strategy_name_1 == "Mean Reversion":
-        mr_window_1 = st.slider("Window Period (Strategy 1)", 5, 50, 20)
-        mr_deviation_1 = st.slider("Threshold (Number of Standard Deviations) (Strategy 1)", 1.0, 3.0, 2.0)
-        strategy_1 = MeanReversion(window=mr_window_1, zscore_threshold=mr_deviation_1)
+elif strategy_name_1 == "Mean Reversion":
+    mr_window_1 = st.number_input("Window Period (Strategy 1)", min_value=5, value=20, step=1)
+    mr_deviation_1 = st.number_input("Threshold (Number of Standard Deviations) (Strategy 1)", min_value=1.0, value=2.0, step=0.1)
+    strategy_1 = MeanReversion(window=mr_window_1, zscore_threshold=mr_deviation_1)
 
-    elif strategy_name_1 == "Moving Average":
-        short_window_1 = st.slider("Short Window (Strategy 1)", 5, 50, 14)
-        long_window_1 = st.slider("Long Window (Strategy 1)", 20, 200, 50)
-        exponential_mode_1 = st.checkbox("Exponential Moving Average (EMA) (Strategy 1)", value=False)
-        strategy_1 = MovingAverage(short_window=short_window_1, long_window=long_window_1,
-                                   exponential_mode=exponential_mode_1)
+elif strategy_name_1 == "Moving Average":
+    short_window_1 = st.number_input("Short Window (Strategy 1)", min_value=5, value=14, step=1)
+    long_window_1 = st.number_input("Long Window (Strategy 1)", min_value=20, value=50, step=1)
+    exponential_mode_1 = st.checkbox("Exponential Moving Average (EMA) (Strategy 1)", value=False)
+    strategy_1 = MovingAverage(short_window=short_window_1, long_window=long_window_1, exponential_mode=exponential_mode_1)
 
-    elif strategy_name_1 == "Quality":
-        selected_roe_file_1 = st.selectbox("Select ROE File (Strategy 1)", options=list(data_files.keys()))
-        selected_roa_file_1 = st.selectbox("Select ROA File (Strategy 1)", options=list(data_files.keys()))
-        window_1 = st.slider("Window Period (Days) (Strategy 1)", 5, 50, 30)
-        assets_picked_long_1 = st.slider("Number of Long Positions (Strategy 1)", 0, 1000, 10)
-        assets_picked_short_1 = st.slider("Number of Short Positions (Strategy 1)", 0, 1000, 10)
-        strategy_1 = Quality(window=window_1, assets_picked_long=assets_picked_long_1,
-                             assets_picked_short=assets_picked_short_1)
-        if selected_roe_file_1 and selected_roa_file_1:
-            strategy_1.fit({"ROE": data_files[selected_roe_file_1], "ROA": data_files[selected_roa_file_1]})
+elif strategy_name_1 == "Quality":
+    selected_roe_file_1 = st.selectbox("Select ROE File (Strategy 1)", options=list(data_files.keys()))
+    selected_roa_file_1 = st.selectbox("Select ROA File (Strategy 1)", options=list(data_files.keys()))
+    window_1 = st.number_input("Window Period (Days) (Strategy 1)", min_value=5, value=30, step=1)
+    assets_picked_long_1 = st.number_input("Number of Long Positions (Strategy 1)", min_value=0, value=10, step=1)
+    assets_picked_short_1 = st.number_input("Number of Short Positions (Strategy 1)", min_value=0, value=10, step=1)
+    strategy_1 = Quality(window=window_1, assets_picked_long=assets_picked_long_1, assets_picked_short=assets_picked_short_1)
+    if selected_roe_file_1 and selected_roa_file_1:
+        strategy_1.fit({"ROE": data_files[selected_roe_file_1], "ROA": data_files[selected_roa_file_1]})
 
-    elif strategy_name_1 == "Value":
-        selected_per_file_1 = st.selectbox("Select PER File (Strategy 1)", options=list(data_files.keys()))
-        selected_pbr_file_1 = st.selectbox("Select PBR File (Strategy 1)", options=list(data_files.keys()))
-        window_1 = st.slider("Window Period (Days) (Strategy 1)", 5, 50, 30)
-        assets_picked_long_1 = st.slider("Number of Long Positions (Strategy 1)", 0, 1000, 10)
-        assets_picked_short_1 = st.slider("Number of Short Positions (Strategy 1)", 0, 1000, 10)
-        strategy_1 = Value(window=window_1, assets_picked_long=assets_picked_long_1,
-                           assets_picked_short=assets_picked_short_1)
-        if selected_per_file_1 and selected_pbr_file_1:
-            strategy_1.fit({"PER": data_files[selected_per_file_1], "PBR": data_files[selected_pbr_file_1]})
+elif strategy_name_1 == "Value":
+    selected_per_file_1 = st.selectbox("Select PER File (Strategy 1)", options=list(data_files.keys()))
+    selected_pbr_file_1 = st.selectbox("Select PBR File (Strategy 1)", options=list(data_files.keys()))
+    window_1 = st.number_input("Window Period (Days) (Strategy 1)", min_value=5, value=30, step=1)
+    assets_picked_long_1 = st.number_input("Number of Long Positions (Strategy 1)", min_value=0, value=10, step=1)
+    assets_picked_short_1 = st.number_input("Number of Short Positions (Strategy 1)", min_value=0, value=10, step=1)
+    strategy_1 = Value(window=window_1, assets_picked_long=assets_picked_long_1, assets_picked_short=assets_picked_short_1)
+    if selected_per_file_1 and selected_pbr_file_1:
+        strategy_1.fit({"PER": data_files[selected_per_file_1], "PBR": data_files[selected_pbr_file_1]})
 
-    elif strategy_name_1 == "Size":
-        selected_market_cap_file_1 = st.selectbox("Select Market Cap File (Strategy 1)",
-                                                  options=list(data_files.keys()))
-        window_1 = st.slider("Window Period (Days) (Strategy 1)", 5, 50, 30)
-        assets_picked_long_1 = st.slider("Number of Long Positions (Strategy 1)", 0, 1000, 10)
-        assets_picked_short_1 = st.slider("Number of Short Positions (Strategy 1)", 0, 1000, 10)
-        strategy_1 = Size(window=window_1, assets_picked_long=assets_picked_long_1,
-                          assets_picked_short=assets_picked_short_1)
-        if selected_market_cap_file_1:
-            strategy_1.fit(data_files[selected_market_cap_file_1])
+elif strategy_name_1 == "Size":
+    selected_market_cap_file_1 = st.selectbox("Select Market Cap File (Strategy 1)", options=list(data_files.keys()))
+    window_1 = st.number_input("Window Period (Days) (Strategy 1)", min_value=5, value=30, step=1)
+    assets_picked_long_1 = st.number_input("Number of Long Positions (Strategy 1)", min_value=0, value=10, step=1)
+    assets_picked_short_1 = st.number_input("Number of Short Positions (Strategy 1)", min_value=0, value=10, step=1)
+    strategy_1 = Size(window=window_1, assets_picked_long=assets_picked_long_1, assets_picked_short=assets_picked_short_1)
+    if selected_market_cap_file_1:
+        strategy_1.fit(data_files[selected_market_cap_file_1])
 
-    elif strategy_name_1 == "Buy and Hold":
-        strategy_1 = BuyAndHold()
+elif strategy_name_1 == "Buy and Hold":
+    strategy_1 = BuyAndHold()
 
-    elif strategy_name_1 == "MinVariance":
-        short_sell_1 = st.checkbox("Allow Short Selling", value=False)
-        strategy_1 = MinVariance(short_sell=short_sell_1)
+elif strategy_name_1 == "MinVariance":
+    short_sell_1 = st.checkbox("Allow Short Selling", value=False)
+    strategy_1 = MinVariance(short_sell=short_sell_1)
 
-    elif strategy_name_1 == "Volatility Trend":
-        atr_period_1 = st.slider("ATR Period (Strategy 1)", 5, 50, 14)
-        dmi_period_1 = st.slider("DMI Period (Strategy 1)", 5, 50, 14)
-        atr_threshold_1 = st.slider("ATR Threshold (Strategy 1)", 0.1, 5.0, 1.0, step=0.1)
-        strategy_1 = VolatilityTrendStrategy(atr_period=atr_period_1, dmi_period=dmi_period_1,
-                                             atr_threshold=atr_threshold_1)
+elif strategy_name_1 == "Volatility Trend":
+    atr_period_1 = st.number_input("ATR Period (Strategy 1)", min_value=5, value=14, step=1)
+    dmi_period_1 = st.number_input("DMI Period (Strategy 1)", min_value=5, value=14, step=1)
+    atr_threshold_1 = st.number_input("ATR Threshold (Strategy 1)", min_value=0.1, value=1.0, step=0.1)
+    strategy_1 = VolatilityTrendStrategy(atr_period=atr_period_1, dmi_period=dmi_period_1, atr_threshold=atr_threshold_1)
 
-    elif strategy_name_1 == "Keltner Channel":
-        atr_period_1 = st.slider("ATR Period (Strategy 1)", 5, 50, 10)
-        atr_multiplier_1 = st.slider("ATR Multiplier (Strategy 1)", 1.0, 5.0, 2.0, step=0.1)
-        sma_period_1 = st.slider("SMA Period (Strategy 1)", 5, 50, 20)
-        strategy_1 = KeltnerChannelStrategy(atr_period=atr_period_1, atr_multiplier=atr_multiplier_1,
-                                            sma_period=sma_period_1)
+elif strategy_name_1 == "Keltner Channel":
+    atr_period_1 = st.number_input("ATR Period (Strategy 1)", min_value=5, value=10, step=1)
+    atr_multiplier_1 = st.number_input("ATR Multiplier (Strategy 1)", min_value=1.0, value=2.0, step=0.1)
+    sma_period_1 = st.number_input("SMA Period (Strategy 1)", min_value=5, value=20, step=1)
+    strategy_1 = KeltnerChannelStrategy(atr_period=atr_period_1, atr_multiplier=atr_multiplier_1, sma_period=sma_period_1)
 
 
 # Comparaison de stratégies
@@ -184,7 +179,7 @@ if compare_strategies:
     risk_free_rate_2 = st.sidebar.number_input("Risk Free Rate (Strategy 2, %):", min_value=0.0, max_value=100.0,value=0.0, step=0.1)/100
     rebalancing_frequency_2 = st.sidebar.selectbox("Rebalancing Frequency (Strategy 2):", ["daily", "weekly", "monthly"], index=2)
     weight_scheme_2 = st.sidebar.selectbox("Weighting Scheme (Strategy 2):", ["EqualWeight", "MarketCapWeight"], index=0)
-    special_start_2 = st.sidebar.number_input("Special Start (Strategy 2, Index):", min_value=1, max_value=1000, value=100)
+    special_start_2 = st.sidebar.number_input("Special Start (Strategy 2, Index):", min_value=1, max_value=1000, value=1)
     plot_library_2 = st.sidebar.selectbox("Visualization Library (Strategy 2):", ["matplotlib", "seaborn", "plotly"], index=0)
     apply_vol_target_2 = st.sidebar.checkbox("Apply Vol Target (Strategy 2)", value=False)
     target_vol_2 = st.sidebar.number_input("Target Volatility (Strategy 2, %):", min_value=0.0, max_value=100.0, value=10.0, step=0.1)/100 if apply_vol_target_2 else None
@@ -227,25 +222,27 @@ if compare_strategies:
 
         # Paramètres de la stratégie 2
         if strategy_name_2 == "RSI":
-            rsi_period_2 = st.slider("RSI Period (Strategy 2)", 5, 50, 14)
-            rsi_overbought_2 = st.slider("Overbought Threshold (Strategy 2)", 50, 100, 70)
-            rsi_oversold_2 = st.slider("Oversold Threshold (Strategy 2)", 0, 50, 30)
+            rsi_period_2 = st.number_input("RSI Period (Strategy 2)", min_value=5, value=14, step=1)
+            rsi_overbought_2 = st.number_input("Overbought Threshold (Strategy 2)", min_value=50, value=70, step=1)
+            rsi_oversold_2 = st.number_input("Oversold Threshold (Strategy 2)", min_value=0, value=30, step=1)
             strategy_2 = RSI(period=rsi_period_2, overbought_threshold=rsi_overbought_2,
                              oversold_threshold=rsi_oversold_2)
 
         elif strategy_name_2 == "Bollinger Bands":
-            bb_window_2 = st.slider("Window Period (Strategy 2)", 5, 50, 20)
-            bb_std_dev_2 = st.slider("Number of Standard Deviations (Strategy 2)", 1.0, 3.0, 2.0)
+            bb_window_2 = st.number_input("Window Period (Strategy 2)", min_value=5, value=20, step=1)
+            bb_std_dev_2 = st.number_input("Number of Standard Deviations (Strategy 2)", min_value=1.0, value=2.0,
+                                           step=0.1)
             strategy_2 = BollingerBands(window=bb_window_2, num_std_dev=bb_std_dev_2)
 
         elif strategy_name_2 == "Mean Reversion":
-            mr_window_2 = st.slider("Window Period (Strategy 2)", 5, 50, 20)
-            mr_deviation_2 = st.slider("Threshold (Number of Standard Deviations) (Strategy 2)", 1.0, 3.0, 2.0)
+            mr_window_2 = st.number_input("Window Period (Strategy 2)", min_value=5, value=20, step=1)
+            mr_deviation_2 = st.number_input("Threshold (Number of Standard Deviations) (Strategy 2)", min_value=1.0,
+                                             value=2.0, step=0.1)
             strategy_2 = MeanReversion(window=mr_window_2, zscore_threshold=mr_deviation_2)
 
         elif strategy_name_2 == "Moving Average":
-            short_window_2 = st.slider("Short Window (Strategy 2)", 5, 50, 14)
-            long_window_2 = st.slider("Long Window (Strategy 2)", 20, 200, 50)
+            short_window_2 = st.number_input("Short Window (Strategy 2)", min_value=5, value=14, step=1)
+            long_window_2 = st.number_input("Long Window (Strategy 2)", min_value=20, value=50, step=1)
             exponential_mode_2 = st.checkbox("Exponential Moving Average (EMA) (Strategy 2)", value=False)
             strategy_2 = MovingAverage(short_window=short_window_2, long_window=long_window_2,
                                        exponential_mode=exponential_mode_2)
@@ -253,9 +250,11 @@ if compare_strategies:
         elif strategy_name_2 == "Quality":
             selected_roe_file_2 = st.selectbox("Select ROE File (Strategy 2)", options=list(data_files.keys()))
             selected_roa_file_2 = st.selectbox("Select ROA File (Strategy 2)", options=list(data_files.keys()))
-            window_2 = st.slider("Window Period (Days) (Strategy 2)", 5, 50, 30)
-            assets_picked_long_2 = st.slider("Number of Long Positions (Strategy 2)", 0, 1000, 10)
-            assets_picked_short_2 = st.slider("Number of Short Positions (Strategy 2)", 0, 1000, 10)
+            window_2 = st.number_input("Window Period (Days) (Strategy 2)", min_value=5, value=30, step=1)
+            assets_picked_long_2 = st.number_input("Number of Long Positions (Strategy 2)", min_value=0, value=10,
+                                                   step=1)
+            assets_picked_short_2 = st.number_input("Number of Short Positions (Strategy 2)", min_value=0, value=10,
+                                                    step=1)
             strategy_2 = Quality(window=window_2, assets_picked_long=assets_picked_long_2,
                                  assets_picked_short=assets_picked_short_2)
             if selected_roe_file_2 and selected_roa_file_2:
@@ -264,9 +263,11 @@ if compare_strategies:
         elif strategy_name_2 == "Value":
             selected_per_file_2 = st.selectbox("Select PER File (Strategy 2)", options=list(data_files.keys()))
             selected_pbr_file_2 = st.selectbox("Select PBR File (Strategy 2)", options=list(data_files.keys()))
-            window_2 = st.slider("Window Period (Days) (Strategy 2)", 5, 50, 30)
-            assets_picked_long_2 = st.slider("Number of Long Positions (Strategy 2)", 0, 1000, 10)
-            assets_picked_short_2 = st.slider("Number of Short Positions (Strategy 2)", 0, 1000, 10)
+            window_2 = st.number_input("Window Period (Days) (Strategy 2)", min_value=5, value=30, step=1)
+            assets_picked_long_2 = st.number_input("Number of Long Positions (Strategy 2)", min_value=0, value=10,
+                                                   step=1)
+            assets_picked_short_2 = st.number_input("Number of Short Positions (Strategy 2)", min_value=0, value=10,
+                                                    step=1)
             strategy_2 = Value(window=window_2, assets_picked_long=assets_picked_long_2,
                                assets_picked_short=assets_picked_short_2)
             if selected_per_file_2 and selected_pbr_file_2:
@@ -275,9 +276,11 @@ if compare_strategies:
         elif strategy_name_2 == "Size":
             selected_market_cap_file_2 = st.selectbox("Select Market Cap File (Strategy 2)",
                                                       options=list(data_files.keys()))
-            window_2 = st.slider("Window Period (Days) (Strategy 2)", 5, 50, 30)
-            assets_picked_long_2 = st.slider("Number of Long Positions (Strategy 2)", 0, 1000, 10)
-            assets_picked_short_2 = st.slider("Number of Short Positions (Strategy 2)", 0, 1000, 10)
+            window_2 = st.number_input("Window Period (Days) (Strategy 2)", min_value=5, value=30, step=1)
+            assets_picked_long_2 = st.number_input("Number of Long Positions (Strategy 2)", min_value=0, value=10,
+                                                   step=1)
+            assets_picked_short_2 = st.number_input("Number of Short Positions (Strategy 2)", min_value=0, value=10,
+                                                    step=1)
             strategy_2 = Size(window=window_2, assets_picked_long=assets_picked_long_2,
                               assets_picked_short=assets_picked_short_2)
             if selected_market_cap_file_2:
@@ -291,16 +294,16 @@ if compare_strategies:
             strategy_2 = MinVariance(short_sell=short_sell_2)
 
         elif strategy_name_2 == "Volatility Trend":
-            atr_period_2 = st.slider("ATR Period (Strategy 2)", 5, 50, 14)
-            dmi_period_2 = st.slider("DMI Period (Strategy 2)", 5, 50, 14)
-            atr_threshold_2 = st.slider("ATR Threshold (Strategy 2)", 0.1, 5.0, 1.0, step=0.1)
+            atr_period_2 = st.number_input("ATR Period (Strategy 2)", min_value=5, value=14, step=1)
+            dmi_period_2 = st.number_input("DMI Period (Strategy 2)", min_value=5, value=14, step=1)
+            atr_threshold_2 = st.number_input("ATR Threshold (Strategy 2)", min_value=0.1, value=1.0, step=0.1)
             strategy_2 = VolatilityTrendStrategy(atr_period=atr_period_2, dmi_period=dmi_period_2,
                                                  atr_threshold=atr_threshold_2)
 
         elif strategy_name_2 == "Keltner Channel":
-            atr_period_2 = st.slider("ATR Period (Strategy 2)", 5, 50, 10)
-            atr_multiplier_2 = st.slider("ATR Multiplier (Strategy 2)", 1.0, 5.0, 2.0, step=0.1)
-            sma_period_2 = st.slider("SMA Period (Strategy 2)", 5, 50, 20)
+            atr_period_2 = st.number_input("ATR Period (Strategy 2)", min_value=5, value=10, step=1)
+            atr_multiplier_2 = st.number_input("ATR Multiplier (Strategy 2)", min_value=1.0, value=2.0, step=0.1)
+            sma_period_2 = st.number_input("SMA Period (Strategy 2)", min_value=5, value=20, step=1)
             strategy_2 = KeltnerChannelStrategy(atr_period=atr_period_2, atr_multiplier=atr_multiplier_2,
                                                 sma_period=sma_period_2)
 
