@@ -41,7 +41,13 @@ Installez le framework directement depuis PyPI :
 ```bash
 pip install Backtesting-Framework
 ```
-Les dépendances sont gérées via pyproject.toml.
+Les dépendances sont gérées via pyproject.toml :
+```bash
+pip install poetry
+poetry install
+poetry check
+poetry shell
+```
 
 ---
 
