@@ -18,10 +18,14 @@ workalendar = "^17.0.0"
 streamlit = "^1.41.1"
 ipykernel = "^6.29.5"
 statsmodels = "^0.14.4"
+tqdm = "4.67.1"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core"]

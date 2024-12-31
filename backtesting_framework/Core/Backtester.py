@@ -39,6 +39,8 @@ class Backtester:
         """
         print("Initialisation du Backtester...")
         self.data = load_data(data_source)
+        if self.data.empty:
+            raise ValueError("Le DataFrame fourni est vide ou invalide.")
         print("Données de marché chargées.")
         self.weight_scheme = weight_scheme
         self.market_cap_source = market_cap_source

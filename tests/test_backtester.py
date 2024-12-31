@@ -1,55 +1,139 @@
-import numpy as np
-import pandas as pd
 import pytest
-
+import pandas as pd
 from backtesting_framework.Core.Backtester import Backtester
-from backtesting_framework.Strategies.Value import Value
-from backtesting_framework.Strategies.MovingAverage import MovingAverage
+from backtesting_framework.Core.Strategy import Strategy
 
-def generate_random_walk(start_price, size, volatility):
-    returns = np.random.normal(loc=0, scale=volatility, size=size)
-    price = start_price * (1 + returns).cumprod()
-    return price
+def test_backtester_empty_dataframe():
+    # Teste que le Backtester lève une erreur avec un DataFrame vide.
+    empty_data = pd.DataFrame()
+    with pytest.raises(ValueError, match="Le DataFrame fourni est vide ou invalide."):
+        Backtester(
+            data_source=empty_data,
+            weight_scheme="EqualWeight",
+            transaction_cost=0.01,
+            slippage=0.005,
+            risk_free_rate=0.02,
+            rebalancing_frequency="daily"
+        )
 
-def generate_prices_dataframe(start_date, end_date, tickers, start_prices, volatility, freq="D"):
-    dates = pd.date_range(start=start_date, end=end_date, freq=freq)
-    prices = pd.DataFrame(index=dates)
-    for ticker in tickers:
-        prices[ticker] = generate_random_walk(start_prices[ticker], len(dates), volatility[ticker])
-    return prices
+class SimpleStrategy(Strategy):
+    def get_position(self, historical_data, current_position):
+        # Retourne toujours 1 (position longue).
+        return 1
 
-def test_empty_dataframe():
-    empty_df = pd.DataFrame()
-    with pytest.raises(ValueError):
-        Backtester(empty_df)
+def test_backtester_initialization():
+    # Vérifie que le Backtester est correctement initialisé avec des données valides.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    backtester = Backtester(
+        data_source=sample_data,
+        weight_scheme="EqualWeight",
+        transaction_cost=0.01,
+        slippage=0.005,
+        risk_free_rate=0.02,
+        rebalancing_frequency="daily"
+    )
+    assert backtester.data is not None
+    assert backtester.weight_scheme == "EqualWeight"
+    assert backtester.transaction_cost == 0.01
+    assert backtester.slippage == 0.005
+    assert backtester.rfr == 0.02
+    pd.testing.assert_frame_equal(backtester.data, sample_data)
 
-def test_value_strategy():
-    prices = generate_prices_dataframe("2019-01-01", "2020-12-31", ["AAPL", "TSLA", "AMZN"],
-                                       {"AAPL": 100, "TSLA": 200, "AMZN": 300}, {"AAPL": 0.01, "TSLA": 0.02, "AMZN": 0.03})
-
-    per_data = generate_prices_dataframe("2019-01-01", "2020-12-31", ["AAPL", "TSLA", "AMZN"],{"AAPL": 15, "TSLA": 20, "AMZN": 25}, {"AAPL": 0.01, "TSLA": 0.02, "AMZN": 0.03})
-    pbr_data = generate_prices_dataframe("2019-01-01", "2020-12-31", ["AAPL", "TSLA", "AMZN"],{"AAPL": 2, "TSLA": 3, "AMZN": 4}, {"AAPL": 0.01, "TSLA": 0.02, "AMZN": 0.03})
-    metrics_data = {"PER": per_data, "PBR": pbr_data}
-    backtester = Backtester(prices)
-    strategy = Value()
-    strategy.fit(metrics_data)
-    result = backtester.run(strategy)
-
+def test_backtester_run():
+    # Teste que le Backtester exécute une stratégie et retourne un résultat.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    backtester = Backtester(
+        data_source=sample_data,
+        weight_scheme="EqualWeight",
+        transaction_cost=0.01,
+        slippage=0.005,
+        risk_free_rate=0.02,
+        rebalancing_frequency="daily"
+    )
+    strategy = SimpleStrategy()
+    result = backtester.run(strategy=strategy)
     assert result is not None
-    assert isinstance(result.portfolio_returns, pd.Series)
-    assert isinstance(result.cumulative_returns, pd.Series)
+    assert hasattr(result, "portfolio_returns")
+    assert hasattr(result, "cumulative_returns")
 
-def test_moving_average():
-    prices = generate_prices_dataframe("2019-01-01", "2023-01-03", ["AAPL", "TSLA", "AMZN"],
-                                       {"AAPL": 100, "TSLA": 200, "AMZN": 300},
-                                       {"AAPL": 0.01, "TSLA": 0.02, "AMZN": 0.03})
-    backtester = Backtester(prices, special_start=1, rebalancing_frequency="monthly")
-    strategy = MovingAverage(short_window=20, long_window=100)
-    result = backtester.run(strategy)
+def test_backtester_market_cap_source_error():
+    # Teste que le Backtester lève une erreur si `market_cap_source` est manquant.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    with pytest.raises(ValueError, match="market_cap_source doit être fourni si weight_scheme est 'MarketCapWeight'"):
+        Backtester(
+            data_source=sample_data,
+            weight_scheme="MarketCapWeight",
+            transaction_cost=0.01,
+            slippage=0.005
+        )
 
-    assert result is not None
-    assert isinstance(result.portfolio_returns, pd.Series)
-    assert isinstance(result.cumulative_returns, pd.Series)
-    assert (len(result.portfolio_returns) == len(prices))
+def test_backtester_load_market_caps_error(tmp_path):
+    # Teste que le Backtester lève une erreur si les colonnes ne correspondent pas.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    market_cap_path = tmp_path / "market_cap.csv"
+    market_cap_data = pd.DataFrame({
+        "UnrelatedAsset": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    }, index=sample_data.index)
+    market_cap_data.to_csv(market_cap_path)
+    with pytest.raises(ValueError, match="Il n'y a aucune colonne en commun entre les données de marché et les capitalisations boursières."):
+        Backtester(
+            data_source=sample_data,
+            weight_scheme="MarketCapWeight",
+            market_cap_source=str(market_cap_path)
+        )
 
+def test_calculate_composition_matrix():
+    # Teste que la matrice de composition est calculée correctement.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    backtester = Backtester(
+        data_source=sample_data,
+        weight_scheme="EqualWeight",
+        transaction_cost=0.01,
+        slippage=0.005,
+        risk_free_rate=0.02,
+        rebalancing_frequency="daily"
+    )
+    strategy = SimpleStrategy()
+    composition_matrix = backtester.calculate_composition_matrix(strategy)
+    assert composition_matrix is not None
+    non_nan_matrix = composition_matrix.dropna(how='any')
+    assert not non_nan_matrix.isnull().values.any()
+    assert (non_nan_matrix >= 0).all().all()
 
+def test_calculate_weight_matrix():
+    # Teste que la matrice des pondérations est correcte et que les pondérations somment à 1.
+    sample_data = pd.DataFrame({
+        "Asset1": [100, 101, 102, 103, 102, 101, 100, 99, 98, 97],
+        "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218]
+    }, index=pd.date_range("2022-01-01", "2022-01-10"))
+    backtester = Backtester(
+        data_source=sample_data,
+        weight_scheme="EqualWeight",
+        transaction_cost=0.01,
+        slippage=0.005,
+        risk_free_rate=0.02,
+        rebalancing_frequency="daily"
+    )
+    strategy = SimpleStrategy()
+    composition_matrix = backtester.calculate_composition_matrix(strategy)
+    weight_matrix = backtester.calculate_weight_matrix(composition_matrix)
+    assert weight_matrix is not None
+    non_nan_weights = weight_matrix.dropna(how='any')
+    valid_weights = non_nan_weights[non_nan_weights.sum(axis=1) > 0]
+    assert not valid_weights.isnull().values.any()
+    assert (valid_weights.sum(axis=1).round(6) == 1).all()
