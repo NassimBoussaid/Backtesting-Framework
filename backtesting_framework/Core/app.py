@@ -52,11 +52,13 @@ if uploaded_files:
 
 # Paramètres globaux pour la stratégie 1
 st.sidebar.subheader("Global Settings - Strategy 1")
-transaction_cost_1 = st.sidebar.number_input("Transaction Cost (Strategy 1, %):", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
-slippage_1 = st.sidebar.number_input("Slippage (Strategy 1, %):", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
+transaction_cost_1 = st.sidebar.number_input("Transaction Cost (Strategy 1, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
+slippage_1 = st.sidebar.number_input("Slippage (Strategy 1, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
+risk_free_rate_1 = st.sidebar.number_input("Risk Free Rate (Strategy 1, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
 rebalancing_frequency_1 = st.sidebar.selectbox("Rebalancing Frequency (Strategy 1):", ["daily", "weekly", "monthly"], index=2)
 weight_scheme_1 = st.sidebar.selectbox("Weighting Scheme (Strategy 1):", ["EqualWeight", "MarketCapWeight"], index=0)
 special_start_1 = st.sidebar.number_input("Special Start (Strategy 1, Index):", min_value=1, max_value=1000, value=100)
+plot_library_1 = st.sidebar.selectbox("Visualization Library (Strategy 1):", ["matplotlib", "seaborn", "plotly"], index=0)
 apply_vol_target_1 = st.sidebar.checkbox("Apply Vol Target (Strategy 1)", value=False)
 target_vol_1 = st.sidebar.number_input("Target Volatility (Strategy 1, %):", min_value=0.0, max_value=100.0, value=10.0, step=0.1) if apply_vol_target_1 else None
 
@@ -81,7 +83,7 @@ strategy_name_1 = st.selectbox(
         "Buy and Hold",
         "MinVariance",
         "Volatility Trend",
-        "Keltner Channel"
+        "Keltner Channel",
     ]
 )
 
@@ -173,18 +175,21 @@ if strategy_name_1:
         strategy_1 = KeltnerChannelStrategy(atr_period=atr_period_1, atr_multiplier=atr_multiplier_1,
                                             sma_period=sma_period_1)
 
+
 # Comparaison de stratégies
 compare_strategies = st.sidebar.checkbox("Compare Two Strategies", value=False)
 if compare_strategies:
     # Paramètres globaux pour la stratégie 2
     st.sidebar.subheader("Global Settings - Strategy 2")
-    transaction_cost_2 = st.sidebar.number_input("Transaction Cost (Strategy 2, %):", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
-    slippage_2 = st.sidebar.number_input("Slippage (Strategy 2, %):", min_value=0.0, max_value=1.0, value=0.0, step=0.01)
+    transaction_cost_2 = st.sidebar.number_input("Transaction Cost (Strategy 2, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
+    slippage_2 = st.sidebar.number_input("Slippage (Strategy 2, %):", min_value=0.0, max_value=100.0, value=0.0, step=0.1)/100
+    risk_free_rate_2 = st.sidebar.number_input("Risk Free Rate (Strategy 2, %):", min_value=0.0, max_value=100.0,value=0.0, step=0.1)/100
     rebalancing_frequency_2 = st.sidebar.selectbox("Rebalancing Frequency (Strategy 2):", ["daily", "weekly", "monthly"], index=2)
     weight_scheme_2 = st.sidebar.selectbox("Weighting Scheme (Strategy 2):", ["EqualWeight", "MarketCapWeight"], index=0)
     special_start_2 = st.sidebar.number_input("Special Start (Strategy 2, Index):", min_value=1, max_value=1000, value=100)
+    plot_library_2 = st.sidebar.selectbox("Visualization Library (Strategy 2):", ["matplotlib", "seaborn", "plotly"], index=0)
     apply_vol_target_2 = st.sidebar.checkbox("Apply Vol Target (Strategy 2)", value=False)
-    target_vol_2 = st.sidebar.number_input("Target Volatility (Strategy 2, %):", min_value=0.0, max_value=100.0, value=10.0, step=0.1) if apply_vol_target_2 else None
+    target_vol_2 = st.sidebar.number_input("Target Volatility (Strategy 2, %):", min_value=0.0, max_value=100.0, value=10.0, step=0.1)/100 if apply_vol_target_2 else None
 
     market_cap_file_2 = None
     if weight_scheme_2 == "MarketCapWeight":
@@ -207,7 +212,8 @@ if compare_strategies:
             "Buy and Hold",
             "MinVariance",
             "Volatility Trend",
-            "Keltner Channel"
+            "Keltner Channel",
+            "Pairs Trading"
         ]
     )
 
@@ -306,10 +312,12 @@ if st.button("Run Backtest") and strategy_1 is not None and historical_data_file
         data_source=historical_data_1,
         weight_scheme=weight_scheme_1,
         market_cap_source=market_cap_file_1,
-        transaction_cost=transaction_cost_1,
-        slippage=slippage_1,
+        special_start=special_start_1,
+        transaction_cost=transaction_cost_1/100,
+        slippage=slippage_1/100,
+        risk_free_rate=risk_free_rate_1/100,
         rebalancing_frequency=rebalancing_frequency_1,
-        special_start=special_start_1
+        plot_library=plot_library_1
     )
     result_1 = backtester_1.run(strategy_1, is_VT=apply_vol_target_1, target_vol=target_vol_1)
 
@@ -320,8 +328,10 @@ if st.button("Run Backtest") and strategy_1 is not None and historical_data_file
             market_cap_source=market_cap_file_2,
             transaction_cost=transaction_cost_2,
             slippage=slippage_2,
+            risk_free_rate=risk_free_rate_2,
             rebalancing_frequency=rebalancing_frequency_2,
-            special_start=special_start_2
+            special_start=special_start_2,
+            plot_library=plot_library_2
         )
         result_2 = backtester_2.run(strategy_2, is_VT=apply_vol_target_2, target_vol=target_vol_2)
 
