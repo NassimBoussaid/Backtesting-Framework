@@ -80,6 +80,37 @@ Le fichier Jupyter Notebook `Framework de Backtesting de Stratégies d’Investi
 
 ---
 
+## Interface Streamlit
+
+Pour rendre l’utilisation du framework plus accessible, nous fournissons une **interface utilisateur** développée avec [Streamlit](https://streamlit.io/). Elle vous permet de réaliser et de visualiser vos backtests sans avoir à écrire de code Python.
+
+### Aperçu de l’interface
+
+- **Panneau de configuration (côté gauche)** :
+  - Réglage des paramètres financiers (coûts de transaction, slippage, taux sans risque, etc.).
+  - Choix de la fréquence de rebalancement (journalier, hebdomadaire, mensuel...).
+  - Sélection du schéma de pondération (EqualWeight, MarketCapWeight...).
+  - Définition d’un index de “special start” pour ignorer un certain nombre de lignes de données initiales.
+  - Choix de la bibliothèque de visualisation (matplotlib, seaborn, plotly…).
+  - Activations optionnelles (Vol Target, comparaison de stratégies, etc.).
+
+- **Panneau principal (côté droit)** :
+  - Téléversement de fichiers de données (formats CSV, XLSX...).
+  - Sélection de la stratégie (Moyenne Mobile, MinVariance, etc.).
+  - Configuration des paramètres spécifiques à la stratégie (ex. taille de fenêtres pour une stratégie de moyennes mobiles).
+  - Bouton d’exécution du backtest et affichage des résultats (statistiques, graphiques interactifs).
+
+Voici ce à quoi ressemble l’interface utilisateur :
+
+![Interface Streamlit](images/streamlit_interface.png)
+
+Pour lancer l'interface graphique Streamlit, exécutez la commande suivante depuis le terminal :
+
+```bash
+poetry run streamlit run backtesting_framework/Core/app.py
+```
+
+---
 ## Auteurs
 
 - **Nassim BOUSSAID**

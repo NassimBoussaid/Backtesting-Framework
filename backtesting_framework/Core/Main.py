@@ -9,15 +9,15 @@ from backtesting_framework.Strategies.PairsTrading import PairsTradingStrategy
 # moving_average_strategy = MovingAverage(7, 100, exponential_mode=False)
 # result = ahah.run(moving_average_strategy, "daily")
 
-price_data = pd.read_csv("S&P500_PX_LAST_EXAMPLE.csv", index_col=0, parse_dates=True)
-backtester = Backtester(price_data, special_start=1, rebalancing_frequency="monthly")
+price_data = pd.read_csv("/datasets/S&P500_PX_LAST.csv", index_col=0, parse_dates=True)
+backtester = Backtester(price_data, special_start=30, rebalancing_frequency="monthly")
 
-#per_data = pd.read_csv("/datasets/S&P500_PER.csv", index_col=0, parse_dates=True)
-#pbr_data = pd.read_csv("/datasets/S&P500_PBR.csv", index_col=0, parse_dates=True)
-#metrics_data = {"PER": per_data, "PBR": pbr_data}
+per_data = pd.read_csv("/datasets/S&P500_PER.csv", index_col=0, parse_dates=True)
+pbr_data = pd.read_csv("/datasets/S&P500_PBR.csv", index_col=0, parse_dates=True)
+metrics_data = {"PER": per_data, "PBR": pbr_data}
 
-strategy = MinVariance(short_sell=False)
-#strategy.fit(metrics_data)
+strategy = Value(window=30, assets_picked_long=1000, assets_picked_short=0)
+strategy.fit(metrics_data)
 result = backtester.run(strategy)
 
 result.display_statistics()
