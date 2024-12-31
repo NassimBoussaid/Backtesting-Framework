@@ -9,11 +9,11 @@ from backtesting_framework.Strategies.PairsTrading import PairsTradingStrategy
 # moving_average_strategy = MovingAverage(7, 100, exponential_mode=False)
 # result = ahah.run(moving_average_strategy, "daily")
 
-price_data = pd.read_csv("C:/Users/nnayr/Documents/M2 EIF/S1/Backtesting-Framework/Datasets/S&P500_PX_LAST.csv", index_col=0, parse_dates=True)
+price_data = pd.read_csv("/datasets/S&P500_PX_LAST.csv", index_col=0, parse_dates=True)
 backtester = Backtester(price_data, special_start=30, rebalancing_frequency="monthly")
 
-per_data = pd.read_csv("C:/Users/nnayr/Documents/M2 EIF/S1/Backtesting-Framework/Datasets/S&P500_PER.csv", index_col=0, parse_dates=True)
-pbr_data = pd.read_csv("C:/Users/nnayr/Documents/M2 EIF/S1/Backtesting-Framework/Datasets/S&P500_PBR.csv", index_col=0, parse_dates=True)
+per_data = pd.read_csv("/datasets/S&P500_PER.csv", index_col=0, parse_dates=True)
+pbr_data = pd.read_csv("/datasets/S&P500_PBR.csv", index_col=0, parse_dates=True)
 metrics_data = {"PER": per_data, "PBR": pbr_data}
 
 strategy = Value(window=30, assets_picked_long=1000, assets_picked_short=0)
@@ -26,7 +26,7 @@ result.plot_monthly_returns_heatmap()
 result.plot_returns_distribution()
 
 """
-price_data = pd.read_excel("C:/Users/nicoc/Desktop/Doc important/272/Python - POO/ProjetPOO/backtesting_framework/Datasets/Data_.xlsx", index_col=0, parse_dates=True)
+price_data = pd.read_excel("C:/Users/nicoc/Desktop/Doc important/272/Python - POO/ProjetPOO/backtesting_framework/datasets/Data_.xlsx", index_col=0, parse_dates=True)
 backtester = Backtester(price_data, special_start=1, rebalancing_frequency="daily")
 
 strategy = PairsTradingStrategy(price_data, z_score_entry=-0.5, z_score_exit=0.5, significant_level=0.05)
