@@ -9,13 +9,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9' # Compatible avec les versions spécifiées dans le pyproject.toml
+        python-version: ${{ matrix.python-version }}
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
