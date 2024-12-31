@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11]  # Corrected versions
+        python-version: [3.9, 3.10, 3.11]
         numpy-version: [1.21, 1.24, 2.0]
 
     steps:
