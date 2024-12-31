@@ -95,7 +95,7 @@ Pour rendre l’utilisation du framework plus accessible, nous fournissons une *
   - Activations optionnelles (Vol Target, comparaison de stratégies, etc.).
 
 - **Panneau principal (côté droit)** :
-  - Téléversement de fichiers de données (formats CSV, XLSX...).
+  - Téléversement de fichiers de données (formats CSV, Parquet...).
   - Sélection de la stratégie (Moyenne Mobile, MinVariance, etc.).
   - Configuration des paramètres spécifiques à la stratégie (ex. taille de fenêtres pour une stratégie de moyennes mobiles).
   - Bouton d’exécution du backtest et affichage des résultats (statistiques, graphiques interactifs).
